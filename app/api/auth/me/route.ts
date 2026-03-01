@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ user: null }, { status: 200 });
     }
     await connectDB();
-    const user = await User.findById(session.id).select("name email role createdAt").lean();
+    const user = await User.findById(session.id).select("name email role createdAt").lean() as any;
     if (!user) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
