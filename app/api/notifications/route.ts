@@ -12,12 +12,12 @@ export async function GET(request: NextRequest) {
     .limit(50)
     .lean();
   return NextResponse.json({
-    notifications: notifications.map((n) => ({
-      id: (n as { _id: { toString: () => string } })._id.toString(),
-      message: (n as { message: string }).message,
-      read: (n as { read: boolean }).read,
-      type: (n as { type: string }).type,
-      createdAt: (n as { createdAt: Date }).createdAt,
+    notifications: notifications.map((n: any) => ({
+      id: n._id.toString(),
+      message: n.message,
+      read: n.read,
+      type: n.type,
+      createdAt: n.createdAt,
     })),
   });
 }

@@ -19,7 +19,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const isCreator = creatorId === session?.id;
   const isAssignee = assigneeId === session?.id;
 
-  const dbUser = await User.findById(session.id).select("role").lean() as { role?: string } | null;
+  const dbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = dbUser?.role === "admin";
 
   if (!isCreator && !isAdmin && !isAssignee) {

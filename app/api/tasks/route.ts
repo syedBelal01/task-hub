@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") as string | null;
     const priority = searchParams.get("priority") as string | null;
 
-    const dbUser = await User.findById(session.id).select("role").lean();
+    const dbUser = await User.findById(session.id).select("role").lean() as any;
     const role = (dbUser?.role === "admin" ? "admin" : "user") as "user" | "admin";
 
     if (role === "user") {

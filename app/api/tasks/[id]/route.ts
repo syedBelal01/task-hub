@@ -9,10 +9,10 @@ import { PRIORITIES } from "@/models/Task";
 async function getTaskAndCheckAuth(id: string, session: { id: string; role: string }) {
   await connectDB();
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
-  const task = await Task.findById(id).populate("createdBy", "name").populate("assignedTo", "name").lean();
+  const task = await Task.findById(id).populate("createdBy", "name").populate("assignedTo", "name").lean() as any;
   if (!task) return null;
-  const createdById = (task as { createdBy?: { _id?: unknown } }).createdBy?._id?.toString?.() ?? (task as { createdBy?: unknown }).createdBy?.toString?.();
-  const assignedToId = (task as { assignedTo?: { _id?: unknown } }).assignedTo?._id?.toString?.() ?? (task as { assignedTo?: unknown }).assignedTo?.toString?.();
+  const createdById = task.createdBy?._id?.toString?.() ?? task.createdBy?.toString?.();
+  const assignedToId = task.assignedTo?._id?.toString?.() ?? task.assignedTo?.toString?.();
   if (session.role === "admin") return task;
   if (createdById === session.id || assignedToId === session.id) return task;
   return null;
@@ -24,7 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { id } = await params;
   const task = await getTaskAndCheckAuth(id, session);
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
-  const t = task as { _id: { toString: () => string }; createdBy?: { name?: string }; assignedTo?: { name?: string } };
+  const t = task as any;
   return NextResponse.json({
     ...task,
     id: t._id.toString(),
@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!taskDoc) return NextResponse.json({ error: "Task not found" }, { status: 404 });
   const isCreator = taskDoc.createdBy.toString() === session.id;
   const isAssignee = taskDoc.assignedTo?.toString() === session.id;
-  const dbUser = await User.findById(session.id).select("role").lean() as { role?: string } | null;
+  const dbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = dbUser?.role === "admin";
 
   const body = await request.json();
@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (Object.keys(body).length === 1 && body.assignedTo != null) {
       taskDoc.assignedTo = body.assignedTo;
       await taskDoc.save();
-      const task = taskDoc.toObject() as { _id: { toString: () => string }; createdBy?: unknown; assignedTo?: unknown };
+      const task = taskDoc.toObject() as any;
       return NextResponse.json({
         ...task,
         id: task._id.toString(),
@@ -81,7 +81,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (body.priority !== undefined && PRIORITIES.includes(body.priority)) taskDoc.priority = body.priority;
   if (isAdmin && body.assignedTo !== undefined) taskDoc.assignedTo = body.assignedTo || null;
   await taskDoc.save();
-  const task = taskDoc.toObject() as { _id: { toString: () => string } };
+  const task = taskDoc.toObject() as any;
   return NextResponse.json({
     ...task,
     id: task._id.toString(),
@@ -98,7 +98,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const task = await Task.findById(id);
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
   const isCreator = task.createdBy.toString() === session.id;
-  const delDbUser = await User.findById(session.id).select("role").lean() as { role?: string } | null;
+  const delDbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = delDbUser?.role === "admin";
   if (!isCreator && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   await Task.findByIdAndDelete(id);

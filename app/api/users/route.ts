@@ -10,7 +10,7 @@ export async function GET() {
     await connectDB();
     const users = await User.find({}).select("_id name").sort({ name: 1 }).lean();
     return NextResponse.json({
-      users: users.map((u) => ({ id: (u as { _id: { toString: () => string } })._id.toString(), name: (u as { name: string }).name })),
+      users: users.map((u: any) => ({ id: u._id.toString(), name: u.name })),
     });
   } catch (e) {
     console.error("Users list error:", e);
