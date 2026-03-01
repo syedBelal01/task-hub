@@ -44,16 +44,16 @@ export async function GET(request: NextRequest) {
       const myTasks = (myTasksRaw as TaskDoc[]).map(mapTask);
       const assignedToMe = (assignedToMeRaw as TaskDoc[]).map(mapTask);
       const allForUser = [...myTasks, ...assignedToMe.filter((t) => !myTasks.some((m) => m.id === t.id))];
-      const grouped = groupTasks(allForUser as unknown as import("@/models/Task").ITask[]);
+      const grouped = groupTasks(allForUser as any);
       return NextResponse.json({
         tasks: allForUser,
         myTasks,
         assignedToMe,
         role: "user",
         grouped: {
-          pending: grouped.pending as ReturnType<typeof mapTask>[],
-          completed: grouped.completed as ReturnType<typeof mapTask>[],
-          rejected: grouped.rejected as ReturnType<typeof mapTask>[],
+          pending: grouped.pending as any,
+          completed: grouped.completed as any,
+          rejected: grouped.rejected as any,
         },
       });
     }
@@ -63,17 +63,17 @@ export async function GET(request: NextRequest) {
     if (priority && PRIORITIES.includes(priority as typeof PRIORITIES[number])) filter.priority = priority;
 
     const tasks = await Task.find(filter).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean();
-    const mapped = (tasks as TaskDoc[]).map(mapTask);
+    const mapped = (tasks as any[]).map(mapTask);
     const assignedToOthers = mapped.filter(t => t.assignedTo != null);
-    const grouped = groupTasks(tasks as unknown as import("@/models/Task").ITask[]);
+    const grouped = groupTasks(tasks as any);
     return NextResponse.json({
       tasks: mapped,
       assignedToOthers,
       role: "admin",
       grouped: {
-        pending: grouped.pending.map((t) => mapTask(t as unknown as TaskDoc)),
-        completed: grouped.completed.map((t) => mapTask(t as unknown as TaskDoc)),
-        rejected: grouped.rejected.map((t) => mapTask(t as unknown as TaskDoc)),
+        pending: grouped.pending.map((t: any) => mapTask(t)),
+        completed: grouped.completed.map((t: any) => mapTask(t)),
+        rejected: grouped.rejected.map((t: any) => mapTask(t)),
       },
     });
   } catch (e) {

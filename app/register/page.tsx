@@ -25,7 +25,7 @@ export default function RegisterPage() {
         body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
         credentials: "include",
       });
-      const data = await res.json().catch(() => ({})) as { error?: string; detail?: string };
+      const data = await res.json().catch(() => ({})) as { error?: string; detail?: string; user?: any };
       if (!res.ok) {
         const msg = data.error || "Registration failed";
         const detail = data.detail ? ` (${data.detail})` : "";

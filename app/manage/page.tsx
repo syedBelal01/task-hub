@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useSearchParams } from "next/navigation";
 import type { Task, GroupedTasks } from "@/types/task";
@@ -23,6 +23,14 @@ function groupTasks(tasks: Task[]): GroupedTasks {
 }
 
 export default function ManagePage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-4xl px-4 py-6"><p>Loading...</p></div>}>
+      <ManagePageContent />
+    </Suspense>
+  );
+}
+
+function ManagePageContent() {
   const { user } = useAuth();
   const editId = useSearchParams()?.get("edit") ?? null;
   const [tasks, setTasks] = useState<Task[]>([]);
