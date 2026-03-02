@@ -22,4 +22,7 @@ const NotificationSchema = new Schema<INotification>(
   { timestamps: true }
 );
 
+NotificationSchema.index({ userId: 1, createdAt: -1 });
+NotificationSchema.index({ userId: 1, read: 1 });
+
 export default models.Notification || model<INotification>("Notification", NotificationSchema);

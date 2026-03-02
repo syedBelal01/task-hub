@@ -12,7 +12,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { id } = await params;
   const body = await request.json();
   const reason = body?.rejectionReason?.trim();
-  if (!reason) return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
   await connectDB();
   const task = await Task.findById(id);
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -25,6 +24,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const dbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = dbUser?.role === "admin";
 
+  if (!isAdmin && !reason) {
+    return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
+  }
+
   if (!isCreator && !isAdmin && !isAssignee) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   await task.save();
   await Notification.create({
     userId: task.createdBy,
-    message: `Task "${task.title}" was rejected. Reason: ${reason}`,
+    message: `Task "${task.title}" was rejected.` + (reason ? ` Reason: ${reason}` : ""),
     type: "task_rejected",
     relatedTaskId: task._id,
   });

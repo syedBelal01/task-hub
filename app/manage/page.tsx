@@ -461,9 +461,9 @@ function MobileManageCard({
 
           {showRejectInput && (
             <div className="animate-expand-down space-y-2">
-              <input type="text" placeholder="Rejection reason..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" autoFocus />
+              <input type="text" placeholder={isAdmin ? "Rejection reason (Optional)..." : "Rejection reason..."} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" autoFocus />
               <div className="flex gap-2">
-                <button type="button" disabled={loading === "reject" || !rejectReason.trim()} onClick={async () => { setLoading("reject"); await onReject!(task.id, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex-1 rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">Confirm</button>
+                <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task.id, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex-1 rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">Confirm</button>
                 <button type="button" onClick={() => { setShowRejectInput(false); setRejectReason(""); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Cancel</button>
               </div>
             </div>

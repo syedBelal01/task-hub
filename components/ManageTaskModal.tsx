@@ -67,7 +67,7 @@ export function ManageTaskModal({
   };
 
   const handleReject = async () => {
-    if (!rejectReason.trim()) return;
+    if (!isAdmin && !rejectReason.trim()) return;
     setLoading("reject");
     await onReject(task.id, rejectReason.trim());
     setLoading(null);
@@ -193,7 +193,7 @@ export function ManageTaskModal({
                     <textarea
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
-                      placeholder="Required"
+                      placeholder={isAdmin ? "Optional" : "Required"}
                       rows={2}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                     />
@@ -201,7 +201,7 @@ export function ManageTaskModal({
                       <button
                         type="button"
                         onClick={handleReject}
-                        disabled={!rejectReason.trim() || !!loading}
+                        disabled={(!isAdmin && !rejectReason.trim()) || !!loading}
                         className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
                       >
                         Submit rejection

@@ -34,4 +34,9 @@ const TaskSchema = new Schema<ITask>(
   { timestamps: true }
 );
 
+TaskSchema.index({ createdBy: 1, createdAt: -1 });
+TaskSchema.index({ assignedTo: 1, createdAt: -1 });
+TaskSchema.index({ status: 1, priority: 1, createdAt: -1 });
+TaskSchema.index({ createdAt: -1 });
+
 export default models.Task || model<ITask>("Task", TaskSchema);
