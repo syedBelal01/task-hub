@@ -35,7 +35,10 @@ function groupTasks(tasks: Task[]): GroupedTasks {
 
 function getAdminFilteredTasks(tasks: Task[], activeCard: AdminActiveCard): Task[] {
   switch (activeCard) {
-    case "total": return tasks;
+    case "total": {
+      const grouped = groupTasks(tasks);
+      return [...grouped.pending, ...grouped.completed, ...grouped.rejected];
+    }
     case "pending": return tasks.filter(t => t.status === "Pending");
     case "completed": return tasks.filter(t => t.status === "Completed");
     case "rejected": return tasks.filter(t => t.status === "Rejected");
@@ -375,7 +378,7 @@ function TaskList({
     );
   }
   return (
-    <div className="space-y-3 pl-1 border-l-2 border-primary-200 ml-3">
+    <div className="space-y-3">
       {tasks.map((task) => (
         <TaskCard
           key={task.id}

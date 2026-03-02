@@ -64,26 +64,34 @@ export function NotificationsBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-80 rounded-lg border bg-white shadow-lg z-50 max-h-96 overflow-auto">
-          <div className="border-b px-3 py-2 font-medium text-slate-800">Notifications</div>
-          {notifications.length === 0 ? (
-            <div className="p-4 text-slate-500 text-sm">No notifications</div>
-          ) : (
-            <ul className="divide-y">
-              {notifications.map((n) => (
-                <li
-                  key={n.id}
-                  className={`px-3 py-2 text-sm ${n.read ? "text-slate-600" : "bg-primary-50/50 text-slate-800"}`}
-                >
-                  {n.message}
-                  <div className="mt-0.5 text-xs text-slate-400">
-                    {new Date(n.createdAt).toLocaleString()}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <>
+          <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div className="fixed left-4 right-4 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 rounded-xl border border-slate-200 bg-white shadow-xl z-50 flex flex-col max-h-[80vh] sm:max-h-96 overflow-hidden sm:origin-top-right animate-scale-in sm:animate-none">
+            <div className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm px-4 py-3 font-semibold text-slate-800 shrink-0">
+              Notifications
+            </div>
+
+            <div className="overflow-y-auto overscroll-contain flex-1">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-center text-slate-500 text-sm">No new notifications</div>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {notifications.map((n) => (
+                    <li
+                      key={n.id}
+                      className={`px-4 py-3 text-sm ${n.read ? "text-slate-600 bg-white" : "bg-primary-50/40 text-slate-800"}`}
+                    >
+                      <p className="leading-relaxed">{n.message}</p>
+                      <div className="mt-1.5 text-xs text-slate-400 font-medium">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
