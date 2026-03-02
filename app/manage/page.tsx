@@ -417,7 +417,14 @@ function MobileManageCard({
                 aria-label="Complete"
                 title="Complete"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                {loading === "complete" ? (
+                  <svg className="h-4 w-4 animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                )}
               </button>
             )}
 
@@ -463,7 +470,19 @@ function MobileManageCard({
             <div className="animate-expand-down space-y-2">
               <input type="text" placeholder={isAdmin ? "Rejection reason (Optional)..." : "Rejection reason..."} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" autoFocus />
               <div className="flex gap-2">
-                <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task.id, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex-1 rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">Confirm</button>
+                <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task.id, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex flex-1 items-center justify-center rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">
+                  {loading === "reject" ? (
+                    <>
+                      <svg className="mr-2 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Confirming...
+                    </>
+                  ) : (
+                    "Confirm"
+                  )}
+                </button>
                 <button type="button" onClick={() => { setShowRejectInput(false); setRejectReason(""); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Cancel</button>
               </div>
             </div>
