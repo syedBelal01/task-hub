@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
 import User from "@/models/User";
 import { PRIORITIES } from "@/models/Task";
+import { updateCalendarEvent, deleteCalendarEvent } from "@/lib/google";
 
 async function getTaskAndCheckAuth(id: string, session: { id: string; role: string }) {
   await connectDB();
@@ -81,6 +82,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (body.priority !== undefined && PRIORITIES.includes(body.priority)) taskDoc.priority = body.priority;
   if (isAdmin && body.assignedTo !== undefined) taskDoc.assignedTo = body.assignedTo || null;
   await taskDoc.save();
+
+  if (taskDoc.googleEventId) {
+    await updateCalendarEvent(session.id, taskDoc.googleEventId, {
+      title: taskDoc.title,
+      description: taskDoc.description,
+      dueDate: taskDoc.dueDate,
+    });
+  }
+
   const task = taskDoc.toObject() as any;
   return NextResponse.json({
     ...task,
@@ -101,6 +111,11 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const delDbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = delDbUser?.role === "admin";
   if (!isCreator && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  if (task.googleEventId) {
+    await deleteCalendarEvent(session.id, task.googleEventId);
+  }
+
   await Task.findByIdAndDelete(id);
   return NextResponse.json({ ok: true });
 }

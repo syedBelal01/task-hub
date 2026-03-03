@@ -2,14 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-export type User = { id: string; name: string; email: string; role: "user" | "admin" } | null;
+export type User = { id: string; name: string; email: string; role: "user" | "admin"; hasGoogleAuth?: boolean } | null;
 
 const AuthContext = createContext<{
   user: User;
   loading: boolean;
   setUser: (u: User) => void;
   refresh: () => Promise<void>;
-}>({ user: null, loading: true, setUser: () => {}, refresh: async () => {} });
+}>({ user: null, loading: true, setUser: () => { }, refresh: async () => { } });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);

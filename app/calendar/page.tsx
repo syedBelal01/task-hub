@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Task } from "@/types/task";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function CalendarPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -10,6 +11,9 @@ export default function CalendarPage() {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
   });
+
+  const { user } = useAuth();
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,10 +48,39 @@ export default function CalendarPage() {
 
   const monthLabel = start.toLocaleString("default", { month: "long", year: "numeric" });
 
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
+    await fetch("/api/auth/google/disconnect", { method: "POST" });
+    window.location.reload();
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-800">Calendar</h1>
-      <p className="mt-1 text-slate-600">Tasks by due date</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Calendar</h1>
+          <p className="mt-1 text-slate-600">Tasks by due date</p>
+        </div>
+        {user?.hasGoogleAuth ? (
+          <button
+            onClick={handleDisconnect}
+            disabled={isDisconnecting}
+            className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
+          >
+            {isDisconnecting ? "Disconnecting..." : "Disconnect Google"}
+          </button>
+        ) : (
+          <a
+            href="/api/auth/google"
+            className="rounded-lg flex items-center gap-2 border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z" />
+            </svg>
+            Sync Google Calendar
+          </a>
+        )}
+      </div>
 
       <div className="mt-6 flex items-center justify-between">
         <button type="button" onClick={prevMonth} className="rounded-lg border px-3 py-2 hover:bg-slate-50">Previous</button>

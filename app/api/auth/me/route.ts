@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ user: null }, { status: 200 });
     }
     await connectDB();
-    const user = await User.findById(session.id).select("name email role createdAt").lean() as any;
+    const user = await User.findById(session.id).select("name email role createdAt googleTokens").lean() as any;
     if (!user) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
@@ -20,6 +20,7 @@ export async function GET() {
         name: user.name,
         email: user.email,
         role: user.role,
+        hasGoogleAuth: !!user.googleTokens?.refresh_token,
       },
     });
   } catch (e) {

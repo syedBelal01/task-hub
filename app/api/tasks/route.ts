@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
 import User from "@/models/User";
 import { PRIORITIES, STATUSES } from "@/models/Task";
+import { createCalendarEvent } from "@/lib/google";
 import { groupTasks, sortTasksGlobal } from "@/lib/taskUtils";
 
 type TaskDoc = {
@@ -111,6 +112,18 @@ export async function POST(request: NextRequest) {
       taskData.assignedTo = assignedTo;
     }
     const task = await Task.create(taskData);
+
+    const eventId = await createCalendarEvent(session.id, {
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+    });
+
+    if (eventId) {
+      task.googleEventId = eventId;
+      await task.save();
+    }
+
     const taskObj = task.toObject() as { _id: { toString: () => string }; createdBy?: unknown; assignedTo?: unknown };
     return NextResponse.json({
       task: {

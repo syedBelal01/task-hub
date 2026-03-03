@@ -7,6 +7,11 @@ export interface IUser {
   password: string;
   role: "user" | "admin";
   createdAt: Date;
+  googleTokens?: {
+    access_token?: string;
+    refresh_token?: string;
+    expiry_date?: number;
+  };
 }
 
 const UserSchema = new Schema<IUser>(
@@ -16,6 +21,11 @@ const UserSchema = new Schema<IUser>(
     password: { type: String, required: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     createdAt: { type: Date, default: Date.now },
+    googleTokens: {
+      access_token: { type: String },
+      refresh_token: { type: String },
+      expiry_date: { type: Number },
+    },
   },
   { timestamps: true }
 );

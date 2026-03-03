@@ -17,6 +17,7 @@ export interface ITask {
   createdBy: mongoose.Types.ObjectId;
   assignedTo?: mongoose.Types.ObjectId;
   createdAt: Date;
+  googleEventId?: string;
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -30,6 +31,7 @@ const TaskSchema = new Schema<ITask>(
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     assignedTo: { type: Schema.Types.ObjectId, ref: "User" },
     createdAt: { type: Date, default: Date.now },
+    googleEventId: { type: String },
   },
   { timestamps: true }
 );
