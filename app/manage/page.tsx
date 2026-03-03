@@ -141,7 +141,7 @@ function ManagePageContent() {
             <MobileSection title="Completed" tasks={myGrouped.completed} currentUserId={user?.id} />
             <MobileSection title="Rejected" tasks={myGrouped.rejected} currentUserId={user?.id} />
             <h2 className="text-lg font-semibold text-slate-800 pt-2">Tasks assigned by admin</h2>
-            <MobileSection title="Pending" tasks={assignedGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} currentUserId={user?.id} />
+            <MobileSection title="Pending" tasks={assignedGrouped.pending} onComplete={(t) => handleComplete(t)} currentUserId={user?.id} />
             <MobileSection title="Completed" tasks={assignedGrouped.completed} />
             <MobileSection title="Rejected" tasks={assignedGrouped.rejected} />
           </>
@@ -216,9 +216,9 @@ function ManagePageContent() {
           task={manageAssignedTask}
           onClose={() => setManageAssignedTask(null)}
           onComplete={() => handleComplete(manageAssignedTask)}
-          onReject={(id, reason) => handleReject(manageAssignedTask, reason)}
-          onEdit={() => { }}
-          onDelete={async () => { }}
+          onReject={undefined}
+          onEdit={undefined}
+          onDelete={undefined}
           isPending={manageAssignedTask.status === "Pending"}
           mode="assignedToMe"
           currentUserId={user?.id}
@@ -435,7 +435,7 @@ function MobileManageCard({
               </button>
             )}
 
-            {onReject && (isAdmin || task.assignedTo === currentUserId) && (
+            {onReject && isAdmin && (
               <button
                 type="button"
                 onClick={() => setShowRejectInput(!showRejectInput)}

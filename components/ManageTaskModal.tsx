@@ -7,9 +7,9 @@ interface ManageTaskModalProps {
   task: Task | null;
   onClose: () => void;
   onComplete: (id: string) => Promise<void>;
-  onReject: (id: string, reason: string) => Promise<void>;
-  onEdit: (task: Task) => void;
-  onDelete: (id: string) => Promise<void>;
+  onReject?: (id: string, reason: string) => Promise<void>;
+  onEdit?: (task: Task) => void;
+  onDelete?: (id: string) => Promise<void>;
   isPending: boolean;
   mode?: "full" | "assignedToMe";
   users?: { id: string; name: string }[];
@@ -69,7 +69,7 @@ export function ManageTaskModal({
   const handleReject = async () => {
     if (!isAdmin && !rejectReason.trim()) return;
     setLoading("reject");
-    await onReject(task.id, rejectReason.trim());
+    if (onReject) await onReject(task.id, rejectReason.trim());
     setLoading(null);
     setShowRejectForm(false);
     setRejectReason("");
@@ -78,7 +78,7 @@ export function ManageTaskModal({
 
   const handleDelete = async () => {
     setLoading("delete");
-    await onDelete(task.id);
+    if (onDelete) await onDelete(task.id);
     setLoading(null);
     onClose();
   };
@@ -191,7 +191,7 @@ export function ManageTaskModal({
                     </button>
                   </div>
                 )}
-                {(isAdmin || task.assignedTo === currentUserId) && (
+                {onReject && isAdmin && (
                   !showRejectForm ? (
                     <button
                       type="button"
@@ -240,21 +240,25 @@ export function ManageTaskModal({
                     </div>
                   )
                 )}
-                <button
-                  type="button"
-                  onClick={() => { onEdit(task); onClose(); }}
-                  className="w-full rounded-lg border border-slate-300 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={!!loading}
-                  className="w-full rounded-lg border border-slate-300 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                >
-                  Delete
-                </button>
+                {onEdit && (
+                  <button
+                    type="button"
+                    onClick={() => onEdit(task)}
+                    className="flex w-full items-center justify-center rounded-lg border border-slate-300 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={!!loading}
+                    className="w-full rounded-lg border border-slate-300 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
+                )}
               </>
             )}
           </div>

@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
 import User from "@/models/User";
 import { PRIORITIES, STATUSES } from "@/models/Task";
-import { groupTasks } from "@/lib/taskUtils";
+import { groupTasks, sortTasksGlobal } from "@/lib/taskUtils";
 
 type TaskDoc = {
   _id: { toString: () => string };
@@ -41,9 +41,9 @@ export async function GET(request: NextRequest) {
         Task.find({ createdBy: session.id }).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean(),
         Task.find({ assignedTo: session.id }).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean(),
       ]);
-      const myTasks = (myTasksRaw as TaskDoc[]).map(mapTask);
-      const assignedToMe = (assignedToMeRaw as TaskDoc[]).map(mapTask);
-      const allForUser = [...myTasks, ...assignedToMe.filter((t) => !myTasks.some((m) => m.id === t.id))];
+      const myTasks = sortTasksGlobal((myTasksRaw as TaskDoc[]).map(mapTask) as any);
+      const assignedToMe = sortTasksGlobal((assignedToMeRaw as TaskDoc[]).map(mapTask) as any);
+      const allForUser = sortTasksGlobal([...myTasks, ...assignedToMe.filter((t: any) => !myTasks.some((m: any) => m.id === t.id))] as any);
       const grouped = groupTasks(allForUser as any);
       return NextResponse.json({
         tasks: allForUser,
@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
     if (priority && PRIORITIES.includes(priority as typeof PRIORITIES[number])) filter.priority = priority;
 
     const tasks = await Task.find(filter).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean();
-    const mapped = (tasks as any[]).map(mapTask);
-    const assignedToOthers = mapped.filter(t => t.assignedTo != null);
+    const mapped = sortTasksGlobal((tasks as any[]).map(mapTask) as any);
+    const assignedToOthers = sortTasksGlobal(mapped.filter((t: any) => t.assignedTo != null) as any);
     const grouped = groupTasks(tasks as any);
     return NextResponse.json({
       tasks: mapped,

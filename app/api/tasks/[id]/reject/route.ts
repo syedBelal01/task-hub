@@ -24,13 +24,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const dbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = dbUser?.role === "admin";
 
-  if (!isAdmin && !reason) {
+  // Assignees can no longer reject tasks, only complete them. Only admins can reject tasks.
+  if (!isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // If an admin is rejecting, a reason is still required.
+  if (!reason) {
     return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
   }
 
-  if (!isAdmin && !isAssignee) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
   task.status = "Rejected";
   task.rejectionReason = reason;
   await task.save();

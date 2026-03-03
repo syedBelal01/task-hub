@@ -293,9 +293,9 @@ export default function DashboardPage() {
           task={manageAssignedTask}
           onClose={() => setManageAssignedTask(null)}
           onComplete={() => handleComplete(manageAssignedTask)}
-          onReject={(id, reason) => handleReject(manageAssignedTask, reason)}
-          onEdit={() => { }}
-          onDelete={async () => { }}
+          onReject={undefined}
+          onEdit={undefined}
+          onDelete={undefined}
           isPending={manageAssignedTask.status === "Pending"}
           mode="assignedToMe"
           currentUserId={user?.id}
