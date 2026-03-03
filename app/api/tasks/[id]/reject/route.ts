@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
-import Notification from "@/models/Notification";
 
 import User from "@/models/User";
 
@@ -37,12 +36,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   task.status = "Rejected";
   task.rejectionReason = reason;
   await task.save();
-  await Notification.create({
-    userId: task.createdBy,
-    message: `Task "${task.title}" was rejected.` + (reason ? ` Reason: ${reason}` : ""),
-    type: "task_rejected",
-    relatedTaskId: task._id,
-  });
+  task.status = "Rejected";
+  task.rejectionReason = reason;
+  await task.save();
   const t = task.toObject();
   return NextResponse.json({
     ...t,

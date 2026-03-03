@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
-import Notification from "@/models/Notification";
 import User from "@/models/User";
 
 export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -28,12 +27,9 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   task.status = "Completed";
   task.rejectionReason = undefined;
   await task.save();
-  await Notification.create({
-    userId: task.createdBy,
-    message: `Task "${task.title}" was marked as completed.`,
-    type: "task_completed",
-    relatedTaskId: task._id,
-  });
+  task.status = "Completed";
+  task.rejectionReason = undefined;
+  await task.save();
   const t = task.toObject();
   return NextResponse.json({
     ...t,

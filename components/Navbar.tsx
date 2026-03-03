@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "./AuthProvider";
-import { NotificationsBell } from "./NotificationsBell";
 import { useState } from "react";
 
 export function Navbar() {
@@ -86,7 +85,6 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-1">{navLinks}</nav>
 
         <div className="flex items-center gap-2 ml-auto">
-          <NotificationsBell />
           <Link
             href="/add-task"
             className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
