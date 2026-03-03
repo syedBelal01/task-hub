@@ -6,6 +6,7 @@ import type { Task, GroupedTasks } from "@/types/task";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskFilters } from "@/components/TaskFilters";
 import { ManageTaskModal } from "@/components/ManageTaskModal";
+import { SectionSkeleton, MobileSectionSkeleton } from "@/components/Skeletons";
 import type { Priority } from "@/types/task";
 
 type StatusFilter = "all" | "Pending" | "Completed" | "Rejected";
@@ -138,7 +139,25 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 animate-fade-in-up">
       <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
 
-      {isAdmin ? (
+      {loading ? (
+        <>
+          <div className="mt-6 space-y-3 md:hidden">
+            <MobileSectionSkeleton title="Loading Tasks..." count={4} />
+          </div>
+          <div className="hidden md:block">
+            <div className="mt-6 grid grid-cols-4 gap-3">
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div className="mt-6 space-y-8">
+              <SectionSkeleton title="Loading Tasks..." count={3} />
+              <SectionSkeleton title="" count={3} />
+            </div>
+          </div>
+        </>
+      ) : isAdmin ? (
         <>
           {/* ═══ MOBILE: Admin Expandable Cards ═══ */}
           <div className="mt-6 space-y-3 md:hidden stagger-children">

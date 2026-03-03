@@ -9,7 +9,7 @@ import { PRIORITIES } from "@/models/Task";
 async function getTaskAndCheckAuth(id: string, session: { id: string; role: string }) {
   await connectDB();
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
-  const task = await Task.findById(id).populate("createdBy", "name").populate("assignedTo", "name").lean() as any;
+  const task = await Task.findById(id).select("title description dueDate priority status createdBy assignedTo rejectionReason createdAt").populate("createdBy", "name").populate("assignedTo", "name").lean() as any;
   if (!task) return null;
   const createdById = task.createdBy?._id?.toString?.() ?? task.createdBy?.toString?.();
   const assignedToId = task.assignedTo?._id?.toString?.() ?? task.assignedTo?.toString?.();

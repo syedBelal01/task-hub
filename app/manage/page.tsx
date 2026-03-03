@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import type { Task, GroupedTasks } from "@/types/task";
 import { TaskCard } from "@/components/TaskCard";
 import { ManageTaskModal } from "@/components/ManageTaskModal";
+import { SectionSkeleton, MobileSectionSkeleton } from "@/components/Skeletons";
 import type { Priority } from "@/types/task";
 
 function groupTasks(tasks: Task[]): GroupedTasks {
@@ -120,7 +121,12 @@ function ManagePageContent() {
 
       {/* ═══ MOBILE VIEW ═══ */}
       <div className="mt-6 md:hidden space-y-6">
-        {isAdmin ? (
+        {loading ? (
+          <>
+            <MobileSectionSkeleton title="Pending" count={3} />
+            <MobileSectionSkeleton title="Completed" count={2} />
+          </>
+        ) : isAdmin ? (
           <>
             <MobileSection title="Pending" tasks={grouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); fetchTasks(); }} />
             <MobileSection title="Completed" tasks={grouped.completed} isAdmin />
@@ -150,7 +156,12 @@ function ManagePageContent() {
 
       {/* ═══ DESKTOP VIEW ═══ */}
       <div className="hidden md:block mt-6 space-y-8">
-        {isAdmin ? (
+        {loading ? (
+          <>
+            <SectionSkeleton title="Pending" count={3} />
+            <SectionSkeleton title="Completed" count={2} />
+          </>
+        ) : isAdmin ? (
           <>
             <section>
               <h2 className="mb-3 text-lg font-semibold text-slate-800">All Tasks</h2>
