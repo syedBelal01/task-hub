@@ -98,12 +98,14 @@ export default function DashboardPage() {
   const myGrouped = groupTasks(applyFilter(myTasks, statusFilter, priorityFilter));
   const assignedGrouped = groupTasks(applyFilter(assignedToMe, statusFilter, priorityFilter));
 
-  const handleComplete = async (id: string) => {
-    await fetch(`/api/tasks/${id}/complete`, { method: "POST", credentials: "include" });
+  const handleComplete = async (task: Task) => {
+    if (!isAdmin && task.assignedTo !== user?.id) return;
+    await fetch(`/api/tasks/${task.id}/complete`, { method: "POST", credentials: "include" });
     fetchTasks();
   };
-  const handleReject = async (id: string, reason: string) => {
-    await fetch(`/api/tasks/${id}/reject`, {
+  const handleReject = async (task: Task, reason: string) => {
+    if (!isAdmin && task.assignedTo !== user?.id) return;
+    await fetch(`/api/tasks/${task.id}/reject`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rejectionReason: reason }),
@@ -266,8 +268,8 @@ export default function DashboardPage() {
         <ManageTaskModal
           task={manageTask}
           onClose={() => setManageTask(null)}
-          onComplete={handleComplete}
-          onReject={handleReject}
+          onComplete={() => handleComplete(manageTask)}
+          onReject={(id, reason) => handleReject(manageTask, reason)}
           onEdit={(t) => { setManageTask(null); window.location.href = `/manage?edit=${t.id}`; }}
           onDelete={handleDelete}
           isPending={manageTask.status === "Pending"}
@@ -290,8 +292,8 @@ export default function DashboardPage() {
         <ManageTaskModal
           task={manageAssignedTask}
           onClose={() => setManageAssignedTask(null)}
-          onComplete={handleComplete}
-          onReject={handleReject}
+          onComplete={() => handleComplete(manageAssignedTask)}
+          onReject={(id, reason) => handleReject(manageAssignedTask, reason)}
           onEdit={() => { }}
           onDelete={async () => { }}
           isPending={manageAssignedTask.status === "Pending"}

@@ -22,7 +22,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const dbUser = await User.findById(session.id).select("role").lean() as any;
   const isAdmin = dbUser?.role === "admin";
 
-  if (!isCreator && !isAdmin && !isAssignee) {
+  if (!isAdmin && !isAssignee) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   task.status = "Completed";

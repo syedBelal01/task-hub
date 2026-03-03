@@ -71,12 +71,14 @@ function ManagePageContent() {
 
   const isAdmin = user?.role === "admin";
 
-  const handleComplete = async (id: string) => {
-    await fetch(`/api/tasks/${id}/complete`, { method: "POST", credentials: "include" });
+  const handleComplete = async (task: Task) => {
+    if (!isAdmin && task.assignedTo !== user?.id) return;
+    await fetch(`/api/tasks/${task.id}/complete`, { method: "POST", credentials: "include" });
     fetchTasks();
   };
-  const handleReject = async (id: string, reason: string) => {
-    await fetch(`/api/tasks/${id}/reject`, {
+  const handleReject = async (task: Task, reason: string) => {
+    if (!isAdmin && task.assignedTo !== user?.id) return;
+    await fetch(`/api/tasks/${task.id}/reject`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rejectionReason: reason }),
@@ -120,13 +122,13 @@ function ManagePageContent() {
       <div className="mt-6 md:hidden space-y-6">
         {isAdmin ? (
           <>
-            <MobileSection title="Pending" tasks={grouped.pending} onComplete={handleComplete} onReject={handleReject} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); fetchTasks(); }} />
+            <MobileSection title="Pending" tasks={grouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); fetchTasks(); }} />
             <MobileSection title="Completed" tasks={grouped.completed} isAdmin />
             <MobileSection title="Rejected" tasks={grouped.rejected} isAdmin />
             {assignedToOthers.length > 0 && (
               <>
                 <h2 className="text-lg font-semibold text-slate-800 pt-2">Assigned to Others</h2>
-                <MobileSection title="Pending" tasks={assignedOthersGrouped.pending} onComplete={handleComplete} onReject={handleReject} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); fetchTasks(); }} />
+                <MobileSection title="Pending" tasks={assignedOthersGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); fetchTasks(); }} />
                 <MobileSection title="Completed" tasks={assignedOthersGrouped.completed} isAdmin />
                 <MobileSection title="Rejected" tasks={assignedOthersGrouped.rejected} isAdmin />
               </>
@@ -135,11 +137,11 @@ function ManagePageContent() {
         ) : (
           <>
             <h2 className="text-lg font-semibold text-slate-800">My tasks</h2>
-            <MobileSection title="Pending" tasks={myGrouped.pending} onComplete={handleComplete} onReject={handleReject} onEdit={handleEdit} onDelete={handleDelete} />
-            <MobileSection title="Completed" tasks={myGrouped.completed} />
-            <MobileSection title="Rejected" tasks={myGrouped.rejected} />
+            <MobileSection title="Pending" tasks={myGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} currentUserId={user?.id} />
+            <MobileSection title="Completed" tasks={myGrouped.completed} currentUserId={user?.id} />
+            <MobileSection title="Rejected" tasks={myGrouped.rejected} currentUserId={user?.id} />
             <h2 className="text-lg font-semibold text-slate-800 pt-2">Tasks assigned by admin</h2>
-            <MobileSection title="Pending" tasks={assignedGrouped.pending} onComplete={handleComplete} onReject={handleReject} />
+            <MobileSection title="Pending" tasks={assignedGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} currentUserId={user?.id} />
             <MobileSection title="Completed" tasks={assignedGrouped.completed} />
             <MobileSection title="Rejected" tasks={assignedGrouped.rejected} />
           </>
@@ -189,8 +191,8 @@ function ManagePageContent() {
         <ManageTaskModal
           task={manageTask}
           onClose={() => setManageTask(null)}
-          onComplete={handleComplete}
-          onReject={handleReject}
+          onComplete={() => handleComplete(manageTask)}
+          onReject={(id, reason) => handleReject(manageTask, reason)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           isPending={manageTask.status === "Pending"}
@@ -213,8 +215,8 @@ function ManagePageContent() {
         <ManageTaskModal
           task={manageAssignedTask}
           onClose={() => setManageAssignedTask(null)}
-          onComplete={handleComplete}
-          onReject={handleReject}
+          onComplete={() => handleComplete(manageAssignedTask)}
+          onReject={(id, reason) => handleReject(manageAssignedTask, reason)}
           onEdit={() => { }}
           onDelete={async () => { }}
           isPending={manageAssignedTask.status === "Pending"}
@@ -282,15 +284,17 @@ function MobileSection({
   onDelete,
   isAdmin,
   onReassign,
+  currentUserId,
 }: {
   title: string;
   tasks: Task[];
-  onComplete?: (id: string) => Promise<void>;
-  onReject?: (id: string, reason: string) => Promise<void>;
+  onComplete?: (task: Task) => Promise<void>;
+  onReject?: (task: Task, reason: string) => Promise<void>;
   onEdit?: (task: Task) => void;
   onDelete?: (id: string) => Promise<void>;
   isAdmin?: boolean;
   onReassign?: (taskId: string, userId: string) => Promise<void>;
+  currentUserId?: string;
 }) {
   if (tasks.length === 0) return null;
   return (
@@ -301,12 +305,13 @@ function MobileSection({
           <MobileManageCard
             key={task.id}
             task={task}
-            onComplete={onComplete}
-            onReject={onReject}
+            onComplete={onComplete ? () => onComplete(task) : undefined}
+            onReject={onReject ? (id, reason) => onReject(task, reason) : undefined}
             onEdit={onEdit}
             onDelete={onDelete}
             onReassign={onReassign}
             isAdmin={isAdmin}
+            currentUserId={currentUserId}
           />
         ))}
       </div>
@@ -330,14 +335,16 @@ function MobileManageCard({
   onDelete,
   isAdmin,
   onReassign,
+  currentUserId,
 }: {
   task: Task;
-  onComplete?: (id: string) => Promise<void>;
-  onReject?: (id: string, reason: string) => Promise<void>;
+  onComplete?: (task: Task) => Promise<void>;
+  onReject?: (task: Task, reason: string) => Promise<void>;
   onEdit?: (task: Task) => void;
   onDelete?: (id: string) => Promise<void>;
   isAdmin?: boolean;
   onReassign?: (taskId: string, userId: string) => Promise<void>;
+  currentUserId?: string;
 }) {
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -408,11 +415,11 @@ function MobileManageCard({
       {isPending && (onComplete || onReject) && (
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-center gap-4">
-            {onComplete && (
+            {onComplete && (isAdmin || task.assignedTo === currentUserId) && (
               <button
                 type="button"
                 disabled={loading === "complete"}
-                onClick={async () => { setLoading("complete"); await onComplete(task.id); setLoading(null); }}
+                onClick={async () => { setLoading("complete"); await onComplete(task); setLoading(null); }}
                 className="flex items-center justify-center w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition-colors btn-press disabled:opacity-50"
                 aria-label="Complete"
                 title="Complete"
@@ -428,7 +435,7 @@ function MobileManageCard({
               </button>
             )}
 
-            {onReject && (
+            {onReject && (isAdmin || task.assignedTo === currentUserId) && (
               <button
                 type="button"
                 onClick={() => setShowRejectInput(!showRejectInput)}
@@ -470,7 +477,7 @@ function MobileManageCard({
             <div className="animate-expand-down space-y-2">
               <input type="text" placeholder={isAdmin ? "Rejection reason (Optional)..." : "Rejection reason..."} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" autoFocus />
               <div className="flex gap-2">
-                <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task.id, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex flex-1 items-center justify-center rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">
+                <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex flex-1 items-center justify-center rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">
                   {loading === "reject" ? (
                     <>
                       <svg className="mr-2 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">

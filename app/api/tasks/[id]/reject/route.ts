@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
   }
 
-  if (!isCreator && !isAdmin && !isAssignee) {
+  if (!isAdmin && !isAssignee) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   task.status = "Rejected";
