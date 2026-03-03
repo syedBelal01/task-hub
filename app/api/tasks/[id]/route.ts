@@ -84,11 +84,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   await taskDoc.save();
 
   if (taskDoc.googleEventId) {
-    await updateCalendarEvent(session.id, taskDoc.googleEventId, {
+    updateCalendarEvent(session.id, taskDoc.googleEventId, {
       title: taskDoc.title,
       description: taskDoc.description,
       dueDate: taskDoc.dueDate,
-    });
+    }).catch(console.error);
   }
 
   const task = taskDoc.toObject() as any;
@@ -113,7 +113,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   if (!isCreator && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   if (task.googleEventId) {
-    await deleteCalendarEvent(session.id, task.googleEventId);
+    deleteCalendarEvent(session.id, task.googleEventId).catch(console.error);
   }
 
   await Task.findByIdAndDelete(id);

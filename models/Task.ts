@@ -38,6 +38,8 @@ const TaskSchema = new Schema<ITask>(
 
 TaskSchema.index({ createdBy: 1, createdAt: -1 });
 TaskSchema.index({ assignedTo: 1, createdAt: -1 });
+TaskSchema.index({ status: 1 });
+TaskSchema.index({ priority: 1 });
 TaskSchema.index({ status: 1, priority: 1, createdAt: -1 });
 TaskSchema.index({ createdAt: -1 });
 
