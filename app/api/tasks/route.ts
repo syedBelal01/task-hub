@@ -36,8 +36,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "500", 10);
     const skip = parseInt(searchParams.get("skip") || "0", 10);
 
-    const dbUser = await User.findById(session.id).select("role").lean() as any;
-    const role = (dbUser?.role === "admin" ? "admin" : "user") as "user" | "admin";
+    const role = session.role;
     const SELECT_FIELDS = "title description dueDate priority status createdBy assignedTo rejectionReason createdAt";
 
     if (role === "user") {

@@ -21,12 +21,6 @@ export async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    // Set DNS servers to avoid SRV resolution issues
-    try {
-      const dns = await import("node:dns");
-      dns.setServers(["8.8.8.8", "8.8.4.4"]);
-    } catch { }
-
     cached.promise = mongoose.connect(MONGODB_URI, {
       serverSelectionTimeoutMS: 15000,
       family: 4,

@@ -44,8 +44,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!taskDoc) return NextResponse.json({ error: "Task not found" }, { status: 404 });
   const isCreator = taskDoc.createdBy.toString() === session.id;
   const isAssignee = taskDoc.assignedTo?.toString() === session.id;
-  const dbUser = await User.findById(session.id).select("role").lean() as any;
-  const isAdmin = dbUser?.role === "admin";
+  const isAdmin = session.role === "admin";
 
   const body = await request.json();
 
@@ -108,8 +107,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const task = await Task.findById(id);
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
   const isCreator = task.createdBy.toString() === session.id;
-  const delDbUser = await User.findById(session.id).select("role").lean() as any;
-  const isAdmin = delDbUser?.role === "admin";
+  const isAdmin = session.role === "admin";
   if (!isCreator && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   if (task.googleEventId) {
