@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Task } from "@/types/task";
 
 interface ManageTaskModalProps {
@@ -38,6 +39,17 @@ export function ManageTaskModal({
   const [reassignTo, setReassignTo] = useState("");
   const [assignTo, setAssignTo] = useState("");
   const [userList, setUserList] = useState<{ id: string; name: string }[]>(users);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Lock body scroll to prevent background scrolling
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   useEffect(() => {
     if ((mode === "assignedToMe" || mode === "full") && userList.length === 0 && users.length === 0) {
@@ -102,10 +114,12 @@ export function ManageTaskModal({
   const isAssignedMode = mode === "assignedToMe";
   const otherUsers = userList.filter((u) => u.id !== currentUserId && u.id !== (task.assignedTo ?? ""));
 
-  return (
-    <div className="fixed inset-0 z-[100] h-screen h-[100dvh] w-screen flex items-center justify-center bg-black/50 p-4 transition-opacity animate-fade-in" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 transition-opacity animate-fade-in" onClick={onClose}>
       <div
-        className="w-full max-w-md max-h-[90vh] max-h-[90dvh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl animate-scale-in"
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b pb-3">
@@ -264,6 +278,7 @@ export function ManageTaskModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
