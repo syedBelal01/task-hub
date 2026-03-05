@@ -22,7 +22,7 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 5000,
       family: 4,
       autoSelectFamily: false,
     });
