@@ -103,9 +103,9 @@ export function ManageTaskModal({
   const otherUsers = userList.filter((u) => u.id !== currentUserId && u.id !== (task.assignedTo ?? ""));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-16 md:pt-24 animate-fade-in overflow-y-auto" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-4 md:pt-8 animate-fade-in overflow-y-auto" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-scale-in my-auto md:my-0"
+        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b pb-3">
