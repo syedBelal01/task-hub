@@ -139,7 +139,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 animate-fade-in-up">
-      <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+      <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent w-fit">Dashboard</h1>
 
       {loading ? (
         showSkeleton ? (
@@ -167,28 +167,30 @@ export default function DashboardPage() {
         <>
           {/* ═══ MOBILE: Admin Expandable Cards ═══ */}
           <div className="mt-6 space-y-3 md:hidden stagger-children">
-            <ExpandableCard label="Total Tasks" value={total} isActive={adminActiveCard === "total"} onClick={() => toggleCard("total")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Total Tasks" value={total} isActive={adminActiveCard === "total"} onClick={() => toggleCard("total")} className="bg-indigo-50 border-indigo-200 text-indigo-800" />
             {adminActiveCard === "total" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
-            <ExpandableCard label="Pending" value={pendingCount} isActive={adminActiveCard === "pending"} onClick={() => toggleCard("pending")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Pending" value={pendingCount} isActive={adminActiveCard === "pending"} onClick={() => toggleCard("pending")} className="bg-orange-50 border-orange-200 text-orange-800" />
             {adminActiveCard === "pending" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
-            <ExpandableCard label="Completed" value={completedCount} isActive={adminActiveCard === "completed"} onClick={() => toggleCard("completed")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Completed" value={completedCount} isActive={adminActiveCard === "completed"} onClick={() => toggleCard("completed")} className="bg-teal-50 border-teal-200 text-teal-800" />
             {adminActiveCard === "completed" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
-            <ExpandableCard label="Rejected" value={rejectedCount} isActive={adminActiveCard === "rejected"} onClick={() => toggleCard("rejected")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Rejected" value={rejectedCount} isActive={adminActiveCard === "rejected"} onClick={() => toggleCard("rejected")} className="bg-red-50 border-red-200 text-red-800" />
             {adminActiveCard === "rejected" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
-            <ExpandableCard label="URGENT" value={urgentCount} isActive={adminActiveCard === "urgent"} onClick={() => toggleCard("urgent")} className="bg-pink-50 border-pink-200 text-pink-800" />
+            <div className="grid grid-cols-2 gap-3">
+              <ExpandableCard label="URGENT" value={urgentCount} isActive={adminActiveCard === "urgent"} onClick={() => toggleCard("urgent")} className="bg-pink-50 border-pink-200 text-pink-800 !px-4 !py-3 flex col-span-1 flex-col !items-start gap-1" />
+              <ExpandableCard label="HIGH" value={highCount} isActive={adminActiveCard === "high"} onClick={() => toggleCard("high")} className="bg-amber-50 border-amber-200 text-amber-800 !px-4 !py-3 flex col-span-1 flex-col !items-start gap-1" />
+            </div>
             {adminActiveCard === "urgent" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
-
-            <ExpandableCard label="HIGH" value={highCount} isActive={adminActiveCard === "high"} onClick={() => toggleCard("high")} className="bg-amber-50 border-amber-200 text-amber-800" />
             {adminActiveCard === "high" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
-            <ExpandableCard label="MEDIUM" value={mediumCount} isActive={adminActiveCard === "medium"} onClick={() => toggleCard("medium")} className="bg-sky-50 border-sky-200 text-sky-800" />
+            <div className="grid grid-cols-2 gap-3">
+              <ExpandableCard label="MEDIUM" value={mediumCount} isActive={adminActiveCard === "medium"} onClick={() => toggleCard("medium")} className="bg-sky-50 border-sky-200 text-sky-800 !px-4 !py-3 flex col-span-1 flex-col !items-start gap-1" />
+              <ExpandableCard label="LOW" value={lowCount} isActive={adminActiveCard === "low"} onClick={() => toggleCard("low")} className="bg-slate-50 border-slate-200 text-slate-700 !px-4 !py-3 flex col-span-1 flex-col !items-start gap-1" />
+            </div>
             {adminActiveCard === "medium" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
-
-            <ExpandableCard label="LOW" value={lowCount} isActive={adminActiveCard === "low"} onClick={() => toggleCard("low")} className="bg-slate-50 border-slate-200 text-slate-700" />
             {adminActiveCard === "low" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
             {assignedToOthers.length > 0 && (
@@ -202,10 +204,10 @@ export default function DashboardPage() {
           {/* ═══ DESKTOP: Admin Grid + Sections ═══ */}
           <div className="hidden md:block">
             <div className="mt-6 grid grid-cols-4 gap-3">
-              <SummaryCard label="Total Tasks" value={total} className="bg-blue-50 border-blue-200 text-blue-800" />
-              <SummaryCard label="Pending" value={pendingCount} className="bg-amber-50 border-amber-200 text-amber-800" />
-              <SummaryCard label="Completed" value={completedCount} className="bg-emerald-50 border-emerald-200 text-emerald-800" />
-              <SummaryCard label="Rejected" value={rejectedCount} className="bg-rose-50 border-rose-200 text-rose-800" />
+              <SummaryCard label="Total Tasks" value={total} className="bg-indigo-50 border-indigo-200 text-indigo-800" />
+              <SummaryCard label="Pending" value={pendingCount} className="bg-orange-50 border-orange-200 text-orange-800" />
+              <SummaryCard label="Completed" value={completedCount} className="bg-teal-50 border-teal-200 text-teal-800" />
+              <SummaryCard label="Rejected" value={rejectedCount} className="bg-red-50 border-red-200 text-red-800" />
             </div>
             <div className="mt-4 grid grid-cols-4 gap-3">
               <PriorityCard label="URGENT" value={urgentCount} className="bg-pink-100 border-pink-200 text-pink-800" />
@@ -240,16 +242,16 @@ export default function DashboardPage() {
         <>
           {/* ═══ MOBILE: User Expandable Cards ═══ */}
           <div className="mt-6 space-y-3 md:hidden stagger-children">
-            <ExpandableCard label="My Tasks" value={myTasks.length} isActive={userActiveCard === "myTotal"} onClick={() => setUserActiveCard(prev => prev === "myTotal" ? null : "myTotal")} className="bg-white border-slate-200" />
+            <ExpandableCard label="My Tasks" value={myTasks.length} isActive={userActiveCard === "myTotal"} onClick={() => setUserActiveCard(prev => prev === "myTotal" ? null : "myTotal")} className="bg-indigo-50 border-indigo-200 text-indigo-800" />
             {userActiveCard === "myTotal" && <div className="animate-expand-down"><TaskList tasks={myTasks} onManage={setManageTask} isAdmin={false} /></div>}
 
-            <ExpandableCard label="Pending" value={myTasks.filter(t => t.status === "Pending").length} isActive={userActiveCard === "myPending"} onClick={() => setUserActiveCard(prev => prev === "myPending" ? null : "myPending")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Pending" value={myTasks.filter(t => t.status === "Pending").length} isActive={userActiveCard === "myPending"} onClick={() => setUserActiveCard(prev => prev === "myPending" ? null : "myPending")} className="bg-orange-50 border-orange-200 text-orange-800" />
             {userActiveCard === "myPending" && <div className="animate-expand-down"><TaskList tasks={myTasks.filter(t => t.status === "Pending")} onManage={setManageTask} isAdmin={false} /></div>}
 
-            <ExpandableCard label="Completed" value={myTasks.filter(t => t.status === "Completed").length} isActive={userActiveCard === "myCompleted"} onClick={() => setUserActiveCard(prev => prev === "myCompleted" ? null : "myCompleted")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Completed" value={myTasks.filter(t => t.status === "Completed").length} isActive={userActiveCard === "myCompleted"} onClick={() => setUserActiveCard(prev => prev === "myCompleted" ? null : "myCompleted")} className="bg-teal-50 border-teal-200 text-teal-800" />
             {userActiveCard === "myCompleted" && <div className="animate-expand-down"><TaskList tasks={myTasks.filter(t => t.status === "Completed")} onManage={setManageTask} isAdmin={false} /></div>}
 
-            <ExpandableCard label="Rejected" value={myTasks.filter(t => t.status === "Rejected").length} isActive={userActiveCard === "myRejected"} onClick={() => setUserActiveCard(prev => prev === "myRejected" ? null : "myRejected")} className="bg-white border-slate-200" />
+            <ExpandableCard label="Rejected" value={myTasks.filter(t => t.status === "Rejected").length} isActive={userActiveCard === "myRejected"} onClick={() => setUserActiveCard(prev => prev === "myRejected" ? null : "myRejected")} className="bg-red-50 border-red-200 text-red-800" />
             {userActiveCard === "myRejected" && <div className="animate-expand-down"><TaskList tasks={myTasks.filter(t => t.status === "Rejected")} onManage={setManageTask} isAdmin={false} /></div>}
 
             {assignedToMe.length > 0 && (
@@ -263,10 +265,10 @@ export default function DashboardPage() {
           {/* ═══ DESKTOP: User Grid + Sections ═══ */}
           <div className="hidden md:block">
             <div className="mt-6 grid grid-cols-4 gap-3">
-              <SummaryCard label="My Tasks" value={myTasks.length} className="bg-blue-50 border-blue-200 text-blue-800" />
-              <SummaryCard label="Pending" value={myTasks.filter(t => t.status === "Pending").length} className="bg-amber-50 border-amber-200 text-amber-800" />
-              <SummaryCard label="Completed" value={myTasks.filter(t => t.status === "Completed").length} className="bg-emerald-50 border-emerald-200 text-emerald-800" />
-              <SummaryCard label="Rejected" value={myTasks.filter(t => t.status === "Rejected").length} className="bg-rose-50 border-rose-200 text-rose-800" />
+              <SummaryCard label="My Tasks" value={myTasks.length} className="bg-indigo-50 border-indigo-200 text-indigo-800" />
+              <SummaryCard label="Pending" value={myTasks.filter(t => t.status === "Pending").length} className="bg-orange-50 border-orange-200 text-orange-800" />
+              <SummaryCard label="Completed" value={myTasks.filter(t => t.status === "Completed").length} className="bg-teal-50 border-teal-200 text-teal-800" />
+              <SummaryCard label="Rejected" value={myTasks.filter(t => t.status === "Rejected").length} className="bg-red-50 border-red-200 text-red-800" />
             </div>
             <div className="mt-6">
               <TaskFilters statusFilter={statusFilter} priorityFilter={priorityFilter} onStatusChange={handleStatusChange} onPriorityChange={handlePriorityChange} />
