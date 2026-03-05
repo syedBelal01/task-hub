@@ -157,52 +157,56 @@ export function ManageTaskModal({
             )}
 
             {isAssignedMode && onReassign && otherUsers.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Reassign to</label>
-                <select
-                  value={reassignTo}
-                  onChange={(e) => setReassignTo(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="">Select user</option>
-                  {otherUsers.map((u) => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={handleReassign}
-                  disabled={!reassignTo || !!loading}
-                  className="w-full rounded-lg border border-slate-300 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                >
-                  Reassign
-                </button>
+                <div className="flex gap-2">
+                  <select
+                    value={reassignTo}
+                    onChange={(e) => setReassignTo(e.target.value)}
+                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">Select user</option>
+                    {otherUsers.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleReassign}
+                    disabled={!reassignTo || !!loading}
+                    className="whitespace-nowrap rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Reassign
+                  </button>
+                </div>
               </div>
             )}
 
             {!isAssignedMode && (
               <>
                 {isAdmin && onReassign && userList.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <label className="block text-sm font-medium text-slate-700">Assign to</label>
-                    <select
-                      value={assignTo || task.assignedTo || ""}
-                      onChange={(e) => setAssignTo(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    >
-                      <option value="">Unassigned</option>
-                      {userList.map((u) => (
-                        <option key={u.id} value={u.id}>{u.name}</option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleAssign}
-                      disabled={!!loading}
-                      className="w-full rounded-lg border border-slate-300 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                    >
-                      Save assignment
-                    </button>
+                    <div className="flex gap-2">
+                      <select
+                        value={assignTo || task.assignedTo || ""}
+                        onChange={(e) => setAssignTo(e.target.value)}
+                        className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      >
+                        <option value="">Unassigned</option>
+                        {userList.map((u) => (
+                          <option key={u.id} value={u.id}>{u.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleAssign}
+                        disabled={!!loading}
+                        className="whitespace-nowrap rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                    </div>
                   </div>
                 )}
                 {onReject && isAdmin && (

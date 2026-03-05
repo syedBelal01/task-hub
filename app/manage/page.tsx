@@ -372,6 +372,7 @@ function MobileManageCard({
   const [loading, setLoading] = useState<string | null>(null);
   const [userList, setUserList] = useState<{ id: string; name: string }[]>([]);
   const [assignTo, setAssignTo] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (isAdmin && onReassign) {
@@ -387,17 +388,23 @@ function MobileManageCard({
   const isRejected = task.status === "Rejected";
 
   return (
-    <div className={`rounded-2xl border p-5 shadow-sm card-hover ${isRejected ? "bg-rejected-100 border-rejected-200" : "bg-white border-slate-200"}`}>
+    <div
+      className={`rounded-2xl border p-5 shadow-sm card-hover cursor-pointer transition-all ${isRejected ? "bg-rejected-100 border-rejected-200" : "bg-white border-slate-200"}`}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
       {/* Title row */}
-      <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-lg font-semibold text-slate-800">{task.title}</h3>
-        <span className={`rounded-md border px-2 py-0.5 text-xs font-bold uppercase ${priorityClass}`}>{task.priority}</span>
-        {isPending && <span className="text-xs text-slate-500 font-medium">Pending Approval</span>}
-        {task.status === "Completed" && <span className="text-xs text-emerald-600 font-medium">Completed</span>}
-        {isRejected && <span className="text-xs text-rose-600 font-medium">Rejected</span>}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-800">{task.title}</h3>
+          <span className={`rounded-md border px-2 py-0.5 text-xs font-bold uppercase ${priorityClass}`}>{task.priority}</span>
+          {isPending && <span className="text-xs text-slate-500 font-medium">Pending Approval</span>}
+          {task.status === "Completed" && <span className="text-xs text-emerald-600 font-medium">Completed</span>}
+          {isRejected && <span className="text-xs text-rose-600 font-medium">Rejected</span>}
+        </div>
+        <svg className={`mt-0.5 w-5 h-5 shrink-0 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
-
-      {task.description && <p className="mt-1.5 text-sm text-slate-600">{task.description}</p>}
 
       <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,113 +413,121 @@ function MobileManageCard({
         Due: {new Date(task.dueDate).toLocaleDateString()}
       </div>
 
-      {isAdmin && task.createdByName && <p className="mt-1 text-xs text-slate-400">Submitted by: {task.createdByName}</p>}
-      {isAdmin && task.assignedToName && <p className="mt-0.5 text-xs text-violet-500 font-medium">Assigned to: {task.assignedToName}</p>}
-      {isRejected && task.rejectionReason && <p className="mt-2 text-sm text-red-700">Reason: {task.rejectionReason}</p>}
+      {isExpanded && (
+        <div className="animate-expand-down mt-4 space-y-3 cursor-default pt-1" onClick={(e) => e.stopPropagation()}>
+          {task.description && <p className="text-sm text-slate-600">{task.description}</p>}
 
-      {/* Assign to (admin only) */}
-      {isAdmin && onReassign && isPending && userList.length > 0 && (
-        <div className="mt-3 flex items-center gap-2">
-          <select
-            value={assignTo}
-            onChange={(e) => setAssignTo(e.target.value)}
-            className="flex-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-800"
-          >
-            <option value="">Assign to...</option>
-            {userList.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
-          <button
-            type="button"
-            disabled={!assignTo || loading === "reassign"}
-            onClick={async () => { setLoading("reassign"); await onReassign(task.id, assignTo); setLoading(null); setAssignTo(""); }}
-            className="rounded-lg bg-violet-500 px-3 py-2 text-sm font-medium text-white hover:bg-violet-600 disabled:opacity-50 btn-press"
-          >
-            Assign
-          </button>
-        </div>
-      )}
-
-      {/* Action icons — single row, icon-only */}
-      {isPending && (onComplete || onReject) && (
-        <div className="mt-4 space-y-2">
-          <div className="flex items-center justify-center gap-4">
-            {onComplete && (isAdmin || task.assignedTo === currentUserId) && (
-              <button
-                type="button"
-                disabled={loading === "complete"}
-                onClick={async () => { setLoading("complete"); await onComplete(task); setLoading(null); }}
-                className="flex items-center justify-center w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition-colors btn-press disabled:opacity-50"
-                aria-label="Complete"
-                title="Complete"
-              >
-                {loading === "complete" ? (
-                  <svg className="h-4 w-4 animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                )}
-              </button>
-            )}
-
-            {onReject && isAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowRejectInput(!showRejectInput)}
-                className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors btn-press ${showRejectInput ? "border-rose-400 bg-rose-100 text-rose-700" : "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700"}`}
-                aria-label="Reject"
-                title="Reject"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            )}
-
-            {onEdit && (
-              <button
-                type="button"
-                onClick={() => onEdit(task)}
-                className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors btn-press"
-                aria-label="Edit"
-                title="Edit"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-              </button>
-            )}
-
-            {onDelete && (
-              <button
-                type="button"
-                disabled={loading === "delete"}
-                onClick={async () => { setLoading("delete"); await onDelete(task.id); setLoading(null); }}
-                className="flex items-center justify-center w-10 h-10 rounded-full border border-rose-200 bg-rose-50 text-slate-400 hover:text-rose-500 hover:bg-rose-100 transition-colors btn-press disabled:opacity-50"
-                aria-label="Delete"
-                title="Delete"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-              </button>
-            )}
+          <div className="space-y-1">
+            {isAdmin && task.createdByName && <p className="text-xs text-slate-400">Submitted by: {task.createdByName}</p>}
+            {isAdmin && task.assignedToName && <p className="text-xs text-violet-500 font-medium">Assigned to: {task.assignedToName}</p>}
+            {isRejected && task.rejectionReason && <p className="text-sm text-red-700">Reason: {task.rejectionReason}</p>}
           </div>
 
-          {showRejectInput && (
-            <div className="animate-expand-down space-y-2">
-              <input type="text" placeholder={isAdmin ? "Rejection reason (Optional)..." : "Rejection reason..."} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" autoFocus />
-              <div className="flex gap-2">
-                <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex flex-1 items-center justify-center rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">
-                  {loading === "reject" ? (
-                    <>
-                      <svg className="mr-2 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+          {/* Assign to (admin only) */}
+          {isAdmin && onReassign && isPending && userList.length > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <select
+                value={assignTo}
+                onChange={(e) => setAssignTo(e.target.value)}
+                className="flex-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-800"
+              >
+                <option value="">Assign to...</option>
+                {userList.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+              <button
+                type="button"
+                disabled={!assignTo || loading === "reassign"}
+                onClick={async () => { setLoading("reassign"); await onReassign(task.id, assignTo); setLoading(null); setAssignTo(""); }}
+                className="rounded-lg bg-violet-500 px-3 py-2 text-sm font-medium text-white hover:bg-violet-600 disabled:opacity-50 btn-press"
+              >
+                Assign
+              </button>
+            </div>
+          )}
+
+          {/* Action icons — single row, icon-only */}
+          {isPending && (onComplete || onReject) && (
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-center gap-4">
+                {onComplete && (isAdmin || task.assignedTo === currentUserId) && (
+                  <button
+                    type="button"
+                    disabled={loading === "complete"}
+                    onClick={async () => { setLoading("complete"); await onComplete(task); setLoading(null); }}
+                    className="flex items-center justify-center w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition-colors btn-press disabled:opacity-50"
+                    aria-label="Complete"
+                    title="Complete"
+                  >
+                    {loading === "complete" ? (
+                      <svg className="h-4 w-4 animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Confirming...
-                    </>
-                  ) : (
-                    "Confirm"
-                  )}
-                </button>
-                <button type="button" onClick={() => { setShowRejectInput(false); setRejectReason(""); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Cancel</button>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    )}
+                  </button>
+                )}
+
+                {onReject && isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRejectInput(!showRejectInput)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors btn-press ${showRejectInput ? "border-rose-400 bg-rose-100 text-rose-700" : "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700"}`}
+                    aria-label="Reject"
+                    title="Reject"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+
+                {onEdit && (
+                  <button
+                    type="button"
+                    onClick={() => onEdit(task)}
+                    className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors btn-press"
+                    aria-label="Edit"
+                    title="Edit"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                )}
+
+                {onDelete && (
+                  <button
+                    type="button"
+                    disabled={loading === "delete"}
+                    onClick={async () => { setLoading("delete"); await onDelete(task.id); setLoading(null); }}
+                    className="flex items-center justify-center w-10 h-10 rounded-full border border-rose-200 bg-rose-50 text-slate-400 hover:text-rose-500 hover:bg-rose-100 transition-colors btn-press disabled:opacity-50"
+                    aria-label="Delete"
+                    title="Delete"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                )}
               </div>
+
+              {showRejectInput && (
+                <div className="animate-expand-down space-y-2 pt-2">
+                  <input type="text" placeholder={isAdmin ? "Rejection reason (Optional)..." : "Rejection reason..."} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" autoFocus />
+                  <div className="flex gap-2">
+                    <button type="button" disabled={loading === "reject" || (!isAdmin && !rejectReason.trim())} onClick={async () => { setLoading("reject"); await onReject!(task, rejectReason); setLoading(null); setShowRejectInput(false); setRejectReason(""); }} className="flex flex-1 items-center justify-center rounded-lg bg-rose-500 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50">
+                      {loading === "reject" ? (
+                        <>
+                          <svg className="mr-2 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Confirming...
+                        </>
+                      ) : (
+                        "Confirm"
+                      )}
+                    </button>
+                    <button type="button" onClick={() => { setShowRejectInput(false); setRejectReason(""); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Cancel</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
