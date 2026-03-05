@@ -7,6 +7,7 @@ import type { Task, GroupedTasks } from "@/types/task";
 import { TaskCard } from "@/components/TaskCard";
 import { ManageTaskModal } from "@/components/ManageTaskModal";
 import { SectionSkeleton, MobileSectionSkeleton } from "@/components/Skeletons";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import type { Priority } from "@/types/task";
 
 function groupTasks(tasks: Task[]): GroupedTasks {
@@ -39,6 +40,7 @@ function ManagePageContent() {
   const [assignedToMe, setAssignedToMe] = useState<Task[]>([]);
   const [assignedToOthers, setAssignedToOthers] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const showSkeleton = useDelayedLoading(loading, 400);
   const [manageTask, setManageTask] = useState<Task | null>(null);
   const [manageAssignedTask, setManageAssignedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -122,10 +124,14 @@ function ManagePageContent() {
       {/* ═══ MOBILE VIEW ═══ */}
       <div className="mt-6 md:hidden space-y-6">
         {loading ? (
-          <>
-            <MobileSectionSkeleton title="Pending" count={3} />
-            <MobileSectionSkeleton title="Completed" count={2} />
-          </>
+          showSkeleton ? (
+            <>
+              <MobileSectionSkeleton title="Pending" count={3} />
+              <MobileSectionSkeleton title="Completed" count={2} />
+            </>
+          ) : (
+            <div className="min-h-[50vh]"></div>
+          )
         ) : isAdmin ? (
           <>
             <MobileSection title="Pending" tasks={grouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); fetchTasks(); }} />
@@ -157,10 +163,14 @@ function ManagePageContent() {
       {/* ═══ DESKTOP VIEW ═══ */}
       <div className="hidden md:block mt-6 space-y-8">
         {loading ? (
-          <>
-            <SectionSkeleton title="Pending" count={3} />
-            <SectionSkeleton title="Completed" count={2} />
-          </>
+          showSkeleton ? (
+            <>
+              <SectionSkeleton title="Pending" count={3} />
+              <SectionSkeleton title="Completed" count={2} />
+            </>
+          ) : (
+            <div className="min-h-[50vh]"></div>
+          )
         ) : isAdmin ? (
           <>
             <section>

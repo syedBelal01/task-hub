@@ -7,6 +7,7 @@ import { TaskCard } from "@/components/TaskCard";
 import { TaskFilters } from "@/components/TaskFilters";
 import { ManageTaskModal } from "@/components/ManageTaskModal";
 import { SectionSkeleton, MobileSectionSkeleton } from "@/components/Skeletons";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import type { Priority } from "@/types/task";
 
 type StatusFilter = "all" | "Pending" | "Completed" | "Rejected";
@@ -59,6 +60,7 @@ export default function DashboardPage() {
   const [assignedToOthers, setAssignedToOthers] = useState<Task[]>([]);
   const [apiRole, setApiRole] = useState<"user" | "admin" | null>(null);
   const [loading, setLoading] = useState(true);
+  const showSkeleton = useDelayedLoading(loading, 400);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<Priority | null>(null);
   const [manageTask, setManageTask] = useState<Task | null>(null);
@@ -140,23 +142,27 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
 
       {loading ? (
-        <>
-          <div className="mt-6 space-y-3 md:hidden">
-            <MobileSectionSkeleton title="Loading Tasks..." count={4} />
-          </div>
-          <div className="hidden md:block">
-            <div className="mt-6 grid grid-cols-4 gap-3">
-              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
-              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
-              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
-              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+        showSkeleton ? (
+          <>
+            <div className="mt-6 space-y-3 md:hidden">
+              <MobileSectionSkeleton title="Loading Tasks..." count={4} />
             </div>
-            <div className="mt-6 space-y-8">
-              <SectionSkeleton title="Loading Tasks..." count={3} />
-              <SectionSkeleton title="" count={3} />
+            <div className="hidden md:block">
+              <div className="mt-6 grid grid-cols-4 gap-3">
+                <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+                <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+                <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+                <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              </div>
+              <div className="mt-6 space-y-8">
+                <SectionSkeleton title="Loading Tasks..." count={3} />
+                <SectionSkeleton title="" count={3} />
+              </div>
             </div>
-          </div>
-        </>
+          </>
+        ) : (
+          <div className="min-h-[50vh]"></div>
+        )
       ) : isAdmin ? (
         <>
           {/* ═══ MOBILE: Admin Expandable Cards ═══ */}
