@@ -13,7 +13,7 @@ export function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirect = searchParams?.get("redirect") ?? "/dashboard";
-    const { setUser } = useAuth();
+    const { refresh } = useAuth();
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -32,7 +32,7 @@ export function LoginForm() {
                 setLoading(false);
                 return;
             }
-            setUser(data.user);
+            await refresh();
             router.push(redirect);
             router.refresh();
         } catch {

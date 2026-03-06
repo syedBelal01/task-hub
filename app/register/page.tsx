@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { refresh } = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +33,7 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
-      setUser(data.user);
+      await refresh();
       router.push("/dashboard");
     } catch {
       setError("Something went wrong");
