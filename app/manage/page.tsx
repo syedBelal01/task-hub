@@ -41,6 +41,8 @@ function ManagePageContent() {
   const [manageTask, setManageTask] = useState<Task | null>(null);
   const [manageAssignedTask, setManageAssignedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [assignedUserFilter, setAssignedUserFilter] = useState<string>("all");
+  const [userList, setUserList] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     if (editId && tasks.length > 0 && !editingTask) {
@@ -50,6 +52,15 @@ function ManagePageContent() {
   }, [editId, tasks, editingTask]);
 
   const isAdmin = user?.role === "admin";
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetch("/api/users", { credentials: "include" })
+        .then((r) => r.json())
+        .then((d) => setUserList(d.users ?? []))
+        .catch(() => { });
+    }
+  }, [isAdmin]);
 
   const handleComplete = async (task: Task) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
@@ -80,7 +91,14 @@ function ManagePageContent() {
   const grouped = groupTasks(tasks);
   const myGrouped = groupTasks(myTasks);
   const assignedGrouped = groupTasks(assignedToMe);
-  const assignedOthersGrouped = groupTasks(assignedToOthers);
+
+  const otherUsersList = userList.filter((u) => u.id !== user?.id);
+
+  const filteredAssignedToOthers = assignedUserFilter === "all"
+    ? assignedToOthers
+    : assignedToOthers.filter(t => t.assignedTo === assignedUserFilter);
+
+  const assignedOthersGrouped = groupTasks(filteredAssignedToOthers);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 animate-fade-in-up">
@@ -114,12 +132,32 @@ function ManagePageContent() {
             <MobileSection title="Pending" tasks={grouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshAuth(); }} />
             <MobileSection title="Completed" tasks={grouped.completed} isAdmin />
             <MobileSection title="Rejected" tasks={grouped.rejected} isAdmin />
-            {assignedToOthers.length > 0 && (
+            {otherUsersList.length > 0 && (
               <>
-                <h2 className="text-lg font-semibold text-slate-800 pt-2">Assigned to Others</h2>
-                <MobileSection title="Pending" tasks={assignedOthersGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshAuth(); }} />
-                <MobileSection title="Completed" tasks={assignedOthersGrouped.completed} isAdmin />
-                <MobileSection title="Rejected" tasks={assignedOthersGrouped.rejected} isAdmin />
+                <div className="flex items-center justify-between pt-2">
+                  <h2 className="text-lg font-semibold text-slate-800">Assigned to Others</h2>
+                  <select
+                    value={assignedUserFilter}
+                    onChange={(e) => setAssignedUserFilter(e.target.value)}
+                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm font-medium text-slate-700 bg-white"
+                  >
+                    <option value="all">All Users</option>
+                    {otherUsersList.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {filteredAssignedToOthers.length === 0 ? (
+                  <div className="rounded-xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
+                    No tasks assigned
+                  </div>
+                ) : (
+                  <>
+                    <MobileSection title="Pending" tasks={assignedOthersGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshAuth(); }} />
+                    <MobileSection title="Completed" tasks={assignedOthersGrouped.completed} isAdmin />
+                    <MobileSection title="Rejected" tasks={assignedOthersGrouped.rejected} isAdmin />
+                  </>
+                )}
               </>
             )}
           </>
@@ -156,13 +194,33 @@ function ManagePageContent() {
               <Section title="Completed" tasks={grouped.completed} isAdmin />
               <Section title="Rejected" tasks={grouped.rejected} isAdmin />
             </section>
-            {(assignedOthersGrouped.pending.length > 0 || assignedOthersGrouped.completed.length > 0 || assignedOthersGrouped.rejected.length > 0) && (
+            {otherUsersList.length > 0 && (
               <section>
-                <h2 className="mb-3 text-lg font-semibold text-slate-800">Assigned to Others</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-slate-800">Assigned to Others</h2>
+                  <select
+                    value={assignedUserFilter}
+                    onChange={(e) => setAssignedUserFilter(e.target.value)}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white"
+                  >
+                    <option value="all">All Users</option>
+                    {otherUsersList.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="space-y-6">
-                  <Section title="Pending" tasks={assignedOthersGrouped.pending} showManage onManage={setManageTask} isAdmin />
-                  <Section title="Completed" tasks={assignedOthersGrouped.completed} isAdmin />
-                  <Section title="Rejected" tasks={assignedOthersGrouped.rejected} isAdmin />
+                  {filteredAssignedToOthers.length === 0 ? (
+                    <div className="rounded-xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
+                      No tasks assigned
+                    </div>
+                  ) : (
+                    <>
+                      <Section title="Pending" tasks={assignedOthersGrouped.pending} showManage onManage={setManageTask} isAdmin />
+                      <Section title="Completed" tasks={assignedOthersGrouped.completed} isAdmin />
+                      <Section title="Rejected" tasks={assignedOthersGrouped.rejected} isAdmin />
+                    </>
+                  )}
                 </div>
               </section>
             )}

@@ -64,6 +64,8 @@ export default function DashboardPage() {
   const [manageAssignedTask, setManageAssignedTask] = useState<Task | null>(null);
   const [adminActiveCard, setAdminActiveCard] = useState<AdminActiveCard>(null);
   const [userActiveCard, setUserActiveCard] = useState<UserActiveCard>(null);
+  const [assignedUserFilter, setAssignedUserFilter] = useState<string>("all");
+  const [userList, setUserList] = useState<{ id: string; name: string }[]>([]);
 
   const handleStatusChange = (s: StatusFilter) => {
     setStatusFilter(s);
@@ -75,6 +77,16 @@ export default function DashboardPage() {
   };
 
   const isAdmin = user?.role === "admin" || apiRole === "admin";
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetch("/api/users", { credentials: "include" })
+        .then((r) => r.json())
+        .then((d) => setUserList(d.users ?? []))
+        .catch(() => { });
+    }
+  }, [isAdmin]);
+
   const myGrouped = groupTasks(applyFilter(myTasks, statusFilter, priorityFilter));
   const assignedGrouped = groupTasks(applyFilter(assignedToMe, statusFilter, priorityFilter));
 
@@ -113,6 +125,12 @@ export default function DashboardPage() {
   };
 
   const adminVisibleTasks = getAdminFilteredTasks(tasks, adminActiveCard);
+
+  const otherUsersList = userList.filter((u) => u.id !== user?.id);
+
+  const filteredAssignedToOthers = assignedUserFilter === "all"
+    ? assignedToOthers
+    : assignedToOthers.filter(t => t.assignedTo === assignedUserFilter);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 animate-fade-in-up">
@@ -170,10 +188,30 @@ export default function DashboardPage() {
             {adminActiveCard === "medium" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
             {adminActiveCard === "low" && <div className="animate-expand-down"><TaskList tasks={adminVisibleTasks} onManage={setManageTask} isAdmin /></div>}
 
-            {assignedToOthers.length > 0 && (
+            {otherUsersList.length > 0 && (
               <>
-                <ExpandableCard label="Assigned to Others" value={assignedToOthers.length} isActive={adminActiveCard === "assigned"} onClick={() => toggleCard("assigned")} className="bg-violet-50 border-violet-200 text-violet-800" />
-                {adminActiveCard === "assigned" && <div className="animate-expand-down"><TaskList tasks={assignedToOthers} onManage={setManageTask} isAdmin /></div>}
+                <ExpandableCard label="Assigned to Others" value={filteredAssignedToOthers.length} isActive={adminActiveCard === "assigned"} onClick={() => toggleCard("assigned")} className="bg-violet-50 border-violet-200 text-violet-800" />
+                {adminActiveCard === "assigned" && (
+                  <div className="animate-expand-down space-y-3">
+                    <select
+                      value={assignedUserFilter}
+                      onChange={(e) => setAssignedUserFilter(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 font-medium"
+                    >
+                      <option value="all">All Users</option>
+                      {otherUsersList.map((u) => (
+                        <option key={u.id} value={u.id}>{u.name}</option>
+                      ))}
+                    </select>
+                    {filteredAssignedToOthers.length === 0 ? (
+                      <div className="rounded-xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
+                        No tasks assigned
+                      </div>
+                    ) : (
+                      <TaskList tasks={filteredAssignedToOthers} onManage={setManageTask} isAdmin />
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -202,13 +240,31 @@ export default function DashboardPage() {
                 <TaskSection title="Completed" tasks={groupTasks(applyFilter(tasks, statusFilter, priorityFilter)).completed} isAdmin />
                 <TaskSection title="Rejected" tasks={groupTasks(applyFilter(tasks, statusFilter, priorityFilter)).rejected} isAdmin />
               </section>
-              {assignedToOthers.length > 0 && (
+              {otherUsersList.length > 0 && (
                 <section>
-                  <h2 className="mb-3 text-lg font-semibold text-slate-800">Assigned to Others</h2>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-semibold text-slate-800">Assigned to Others</h2>
+                    <select
+                      value={assignedUserFilter}
+                      onChange={(e) => setAssignedUserFilter(e.target.value)}
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white"
+                    >
+                      <option value="all">All Users</option>
+                      {otherUsersList.map((u) => (
+                        <option key={u.id} value={u.id}>{u.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="space-y-3">
-                    {assignedToOthers.map((task) => (
-                      <TaskCard key={task.id} task={task} showManage isAdmin onManage={setManageTask} />
-                    ))}
+                    {filteredAssignedToOthers.length === 0 ? (
+                      <div className="rounded-xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
+                        No tasks assigned
+                      </div>
+                    ) : (
+                      filteredAssignedToOthers.map((task) => (
+                        <TaskCard key={task.id} task={task} showManage isAdmin onManage={setManageTask} />
+                      ))
+                    )}
                   </div>
                 </section>
               )}
