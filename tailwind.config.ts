@@ -12,6 +12,9 @@ const config: Config = {
         primary: { 50: "#eff6ff", 500: "#3b82f6", 600: "#2563eb", 700: "#1d4ed8" },
         rejected: { 50: "#fef2f2", 100: "#fee2e2", 200: "#fecaca" },
       },
+      fontFamily: {
+        sans: ["var(--font-outfit)", "var(--font-public-sans)", "sans-serif"],
+      },
     },
   },
   plugins: [],
