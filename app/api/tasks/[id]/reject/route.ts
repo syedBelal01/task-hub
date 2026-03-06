@@ -28,10 +28,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // If an admin is rejecting, a reason is still required.
-  if (!reason) {
-    return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
-  }
+  // Admins can reject tasks without a reason.
 
   task.status = "Rejected";
   task.rejectionReason = reason;

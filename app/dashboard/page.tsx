@@ -53,40 +53,17 @@ function getAdminFilteredTasks(tasks: Task[], activeCard: AdminActiveCard): Task
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [myTasks, setMyTasks] = useState<Task[]>([]);
-  const [assignedToMe, setAssignedToMe] = useState<Task[]>([]);
-  const [assignedToOthers, setAssignedToOthers] = useState<Task[]>([]);
+  const { user, tasksState, loading: authLoading, refresh: refreshAuth } = useAuth();
+  const { tasks, myTasks, assignedToMe, assignedToOthers } = tasksState;
+
   const [apiRole, setApiRole] = useState<"user" | "admin" | null>(null);
-  const [loading, setLoading] = useState(true);
-  const showSkeleton = useDelayedLoading(loading, 400);
+  const showSkeleton = useDelayedLoading(authLoading, 400);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<Priority | null>(null);
   const [manageTask, setManageTask] = useState<Task | null>(null);
   const [manageAssignedTask, setManageAssignedTask] = useState<Task | null>(null);
   const [adminActiveCard, setAdminActiveCard] = useState<AdminActiveCard>(null);
   const [userActiveCard, setUserActiveCard] = useState<UserActiveCard>(null);
-
-  const fetchTasks = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/tasks", { credentials: "include" });
-      const data = await res.json();
-      if (res.ok) {
-        setTasks(data.tasks ?? []);
-        setMyTasks(data.myTasks ?? data.tasks ?? []);
-        setAssignedToMe(data.assignedToMe ?? []);
-        setAssignedToOthers(data.assignedToOthers ?? []);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
 
   const handleStatusChange = (s: StatusFilter) => {
     setStatusFilter(s);
@@ -104,7 +81,7 @@ export default function DashboardPage() {
   const handleComplete = async (task: Task) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
     await fetch(`/api/tasks/${task.id}/complete`, { method: "POST", credentials: "include" });
-    fetchTasks();
+    refreshAuth();
   };
   const handleReject = async (task: Task, reason: string) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
@@ -114,12 +91,12 @@ export default function DashboardPage() {
       body: JSON.stringify({ rejectionReason: reason }),
       credentials: "include",
     });
-    fetchTasks();
+    refreshAuth();
   };
   const handleDelete = async (id: string) => {
     await fetch(`/api/tasks/${id}`, { method: "DELETE", credentials: "include" });
     setManageTask(null);
-    fetchTasks();
+    refreshAuth();
   };
 
   const total = tasks.length;
@@ -141,7 +118,7 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 animate-fade-in-up">
       <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent w-fit">Dashboard</h1>
 
-      {loading ? (
+      {authLoading ? (
         showSkeleton ? (
           <>
             <div className="mt-6 space-y-3 md:hidden">
@@ -311,7 +288,7 @@ export default function DashboardPage() {
               credentials: "include",
             });
             setManageTask(null);
-            fetchTasks();
+            refreshAuth();
           } : undefined}
         />
       )}
@@ -334,7 +311,7 @@ export default function DashboardPage() {
               credentials: "include",
             });
             setManageAssignedTask(null);
-            fetchTasks();
+            refreshAuth();
           }}
         />
       )}

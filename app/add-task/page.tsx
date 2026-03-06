@@ -9,7 +9,7 @@ const PRIORITIES: Priority[] = ["Urgent", "High", "Medium", "Low"];
 
 export default function AddTaskPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refresh: refreshAuth } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -66,6 +66,7 @@ export default function AddTaskPage() {
         setError(data.error || "Failed to create task");
         return;
       }
+      refreshAuth();
       router.push("/dashboard");
     } catch {
       setError("Something went wrong");

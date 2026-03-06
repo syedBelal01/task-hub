@@ -5,26 +5,15 @@ import type { Task } from "@/types/task";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function CalendarPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, tasksState } = useAuth();
+  const { tasks } = tasksState;
+
   const [month, setMonth] = useState(() => {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
   });
 
-  const { user } = useAuth();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const res = await fetch("/api/tasks", { credentials: "include" });
-      const data = await res.json();
-      if (!cancelled && res.ok) setTasks(data.tasks ?? []);
-    })();
-    setLoading(false);
-    return () => { cancelled = true; };
-  }, []);
 
   const start = new Date(month.year, month.month, 1);
   const end = new Date(month.year, month.month + 1, 0);

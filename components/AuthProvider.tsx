@@ -1,27 +1,56 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import type { Task, GroupedTasks } from "@/types/task";
 
 export type User = { id: string; name: string; email: string; role: "user" | "admin"; hasGoogleAuth?: boolean } | null;
 
+type GlobalTaskState = {
+  tasks: Task[];
+  myTasks: Task[];
+  assignedToMe: Task[];
+  assignedToOthers: Task[];
+  grouped: GroupedTasks | null;
+};
+
 const AuthContext = createContext<{
   user: User;
+  tasksState: GlobalTaskState;
   loading: boolean;
   setUser: (u: User) => void;
   refresh: () => Promise<void>;
-}>({ user: null, loading: true, setUser: () => { }, refresh: async () => { } });
+}>({
+  user: null,
+  tasksState: { tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null },
+  loading: true,
+  setUser: () => { },
+  refresh: async () => { }
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
+  const [tasksState, setTasksState] = useState<GlobalTaskState>({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/init");
       const data = await res.json();
       setUser(data.user ?? null);
+      if (data.user) {
+        setTasksState({
+          tasks: data.tasks ?? [],
+          myTasks: data.myTasks ?? [],
+          assignedToMe: data.assignedToMe ?? [],
+          assignedToOthers: data.assignedToOthers ?? [],
+          grouped: data.grouped ?? null
+        });
+      } else {
+        setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
+      }
     } catch {
       setUser(null);
+      setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
     } finally {
       setLoading(false);
     }
@@ -32,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser, refresh }}>
+    <AuthContext.Provider value={{ user, tasksState, loading, setUser, refresh }}>
       {children}
     </AuthContext.Provider>
   );
