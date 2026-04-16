@@ -2,17 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
-export function LoginForm() {
+export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const redirect = searchParams?.get("redirect") ?? "/dashboard";
     const { refresh } = useAuth();
 
     async function handleSubmit(e: React.FormEvent) {
@@ -33,7 +31,7 @@ export function LoginForm() {
                 return;
             }
             await refresh();
-            router.push(redirect);
+            router.push(redirectTo);
             router.refresh();
         } catch {
             setError("Something went wrong");

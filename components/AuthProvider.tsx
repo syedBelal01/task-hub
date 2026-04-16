@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import type { Task, GroupedTasks } from "@/types/task";
 
 export type User = { id: string; name: string; email: string; role: "user" | "admin"; hasGoogleAuth?: boolean } | null;
@@ -31,8 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
   const [tasksState, setTasksState] = useState<GlobalTaskState>({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   const refresh = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/init");
       const data = await res.json();
@@ -57,8 +60,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Avoid an eager `/api/init` call on public routes where we don't need tasks/user yet.
+    // This reduces startup latency (especially noticeable in PWA standalone launches).
+    if (pathname === "/" || pathname === "/login" || pathname === "/register") {
+      setLoading(false);
+      return;
+    }
     refresh();
-  }, [refresh]);
+  }, [pathname, refresh]);
 
   return (
     <AuthContext.Provider value={{ user, tasksState, loading, setUser, refresh }}>

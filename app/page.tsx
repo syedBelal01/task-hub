@@ -1,10 +1,15 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { LoginForm } from "@/components/LoginForm";
-import { Suspense } from "react";
 
-export default async function LandingPage() {
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getSession();
+  const sp = (await searchParams) ?? {};
+  const redirectTo = typeof sp.redirect === "string" ? sp.redirect : "/dashboard";
 
   // Instant server-side authentication check! No blank loading views.
   if (session) {
@@ -12,9 +17,5 @@ export default async function LandingPage() {
   }
 
   // Render the login form instantly on the root route
-  return (
-    <Suspense fallback={<div className="flex justify-center items-center h-screen bg-slate-50"></div>}>
-      <LoginForm />
-    </Suspense>
-  );
+  return <LoginForm redirectTo={redirectTo} />;
 }
