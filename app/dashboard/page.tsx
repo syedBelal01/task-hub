@@ -9,6 +9,7 @@ import { ManageTaskModal } from "@/components/ManageTaskModal";
 import { SectionSkeleton, MobileSectionSkeleton } from "@/components/Skeletons";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import type { Priority } from "@/types/task";
+import { useRouter } from "next/navigation";
 
 type StatusFilter = "all" | "Pending" | "Completed" | "Rejected";
 type AdminActiveCard = "total" | "pending" | "completed" | "rejected" | "urgent" | "high" | "medium" | "low" | "assigned" | null;
@@ -55,6 +56,7 @@ function getAdminFilteredTasks(tasks: Task[], activeCard: AdminActiveCard): Task
 export default function DashboardPage() {
   const { user, tasksState, loading: authLoading, refresh: refreshAuth } = useAuth();
   const { tasks, myTasks, assignedToMe, assignedToOthers } = tasksState;
+  const router = useRouter();
 
   const [apiRole, setApiRole] = useState<"user" | "admin" | null>(null);
   const showSkeleton = useDelayedLoading(authLoading, 400);
@@ -344,7 +346,10 @@ export default function DashboardPage() {
           onClose={() => setManageTask(null)}
           onComplete={() => handleComplete(manageTask)}
           onReject={(id, reason) => handleReject(manageTask, reason)}
-          onEdit={(t) => { setManageTask(null); window.location.href = `/manage?edit=${t.id}`; }}
+          onEdit={(t) => {
+            setManageTask(null);
+            router.push(`/manage?edit=${t.id}`);
+          }}
           onDelete={handleDelete}
           isPending={manageTask.status === "Pending"}
           mode="full"
