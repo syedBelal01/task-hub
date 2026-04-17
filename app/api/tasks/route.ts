@@ -40,12 +40,10 @@ export async function GET(request: NextRequest) {
     const SELECT_FIELDS = "title description dueDate priority status createdBy assignedTo rejectionReason createdAt";
 
     if (role === "user") {
-      console.time("DB_Query_User");
       const [myTasksRaw, assignedToMeRaw] = await Promise.all([
         Task.find({ createdBy: session.id }).skip(skip).limit(limit).select(SELECT_FIELDS).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean(),
         Task.find({ assignedTo: session.id }).skip(skip).limit(limit).select(SELECT_FIELDS).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean(),
       ]);
-      console.timeEnd("DB_Query_User");
       const myTasks = sortTasksGlobal((myTasksRaw as TaskDoc[]).map(mapTask) as any);
       const assignedToMe = sortTasksGlobal((assignedToMeRaw as TaskDoc[]).map(mapTask) as any);
       const allForUser = sortTasksGlobal([...myTasks, ...assignedToMe.filter((t: any) => !myTasks.some((m: any) => m.id === t.id))] as any);
@@ -67,9 +65,7 @@ export async function GET(request: NextRequest) {
     if (status && status !== "all" && STATUSES.includes(status as typeof STATUSES[number])) filter.status = status;
     if (priority && PRIORITIES.includes(priority as typeof PRIORITIES[number])) filter.priority = priority;
 
-    console.time("DB_Query_Admin");
     const tasks = await Task.find(filter).skip(skip).limit(limit).select(SELECT_FIELDS).populate("createdBy", "name").populate("assignedTo", "name").sort({ createdAt: -1 }).lean();
-    console.timeEnd("DB_Query_Admin");
 
     const mapped = sortTasksGlobal((tasks as any[]).map(mapTask) as any);
     const assignedToOthers = sortTasksGlobal(mapped.filter((t: any) => t.assignedTo != null) as any);

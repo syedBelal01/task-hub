@@ -4,7 +4,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useState } from "react";
 
 export default function ProfilePage() {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     const handleDisconnect = async () => {
@@ -13,7 +13,25 @@ export default function ProfilePage() {
         window.location.reload();
     };
 
-    if (!user) return null;
+    if (!user) {
+        return (
+            <div className="mx-auto max-w-md px-4 py-8">
+                <div className="h-7 w-40 rounded bg-slate-100 animate-pulse"></div>
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 rounded-full bg-slate-100 animate-pulse"></div>
+                        <div className="space-y-2">
+                            <div className="h-4 w-40 rounded bg-slate-100 animate-pulse"></div>
+                            <div className="h-3 w-56 rounded bg-slate-100 animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+                {!loading && (
+                    <p className="mt-4 text-sm text-slate-500">Not logged in.</p>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="mx-auto max-w-md px-4 py-8 animate-fade-in-up">

@@ -34,7 +34,7 @@ export default function ManagePage() {
 }
 
 function ManagePageContent() {
-  const { user, tasksState, loading: authLoading, refresh: refreshAuth } = useAuth();
+  const { user, tasksState, loading: authLoading, tasksLoading, refreshTasks } = useAuth();
   const { tasks, myTasks, assignedToMe, assignedToOthers } = tasksState;
 
   const editId = useSearchParams()?.get("edit") ?? null;
@@ -44,6 +44,11 @@ function ManagePageContent() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [assignedUserFilter, setAssignedUserFilter] = useState<string>("all");
   const [userList, setUserList] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    refreshTasks();
+  }, [user, refreshTasks]);
 
   useEffect(() => {
     if (editId && tasks.length > 0 && !editingTask) {
@@ -66,7 +71,7 @@ function ManagePageContent() {
   const handleComplete = async (task: Task) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
     await fetch(`/api/tasks/${task.id}/complete`, { method: "POST", credentials: "include" });
-    refreshAuth();
+    refreshTasks();
   };
   const handleReject = async (task: Task, reason: string) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
@@ -76,13 +81,13 @@ function ManagePageContent() {
       body: JSON.stringify({ rejectionReason: reason }),
       credentials: "include",
     });
-    refreshAuth();
+    refreshTasks();
   };
   const handleDelete = async (id: string) => {
     await fetch(`/api/tasks/${id}`, { method: "DELETE", credentials: "include" });
     setManageTask(null);
     if (editingTask?.id === id) setEditingTask(null);
-    refreshAuth();
+    refreshTasks();
   };
   const handleEdit = (task: Task) => {
     setEditingTask(task);
@@ -128,9 +133,14 @@ function ManagePageContent() {
           ) : (
             <div className="min-h-[50vh]"></div>
           )
+        ) : tasksLoading ? (
+          <>
+            <MobileSectionSkeleton title="Pending" count={3} />
+            <MobileSectionSkeleton title="Completed" count={2} />
+          </>
         ) : isAdmin ? (
           <>
-            <MobileSection title="Pending" tasks={grouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshAuth(); }} />
+            <MobileSection title="Pending" tasks={grouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshTasks(); }} />
             <MobileSection title="Completed" tasks={grouped.completed} isAdmin />
             <MobileSection title="Rejected" tasks={grouped.rejected} isAdmin />
             {otherUsersList.length > 0 && (
@@ -154,7 +164,7 @@ function ManagePageContent() {
                   </div>
                 ) : (
                   <>
-                    <MobileSection title="Pending" tasks={assignedOthersGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshAuth(); }} />
+                    <MobileSection title="Pending" tasks={assignedOthersGrouped.pending} onComplete={(t) => handleComplete(t)} onReject={(t, r) => handleReject(t, r)} onEdit={handleEdit} onDelete={handleDelete} isAdmin onReassign={async (taskId, userId) => { await fetch(`/api/tasks/${taskId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedTo: userId || null }), credentials: "include" }); refreshTasks(); }} />
                     <MobileSection title="Completed" tasks={assignedOthersGrouped.completed} isAdmin />
                     <MobileSection title="Rejected" tasks={assignedOthersGrouped.rejected} isAdmin />
                   </>
@@ -187,6 +197,11 @@ function ManagePageContent() {
           ) : (
             <div className="min-h-[50vh]"></div>
           )
+        ) : tasksLoading ? (
+          <>
+            <SectionSkeleton title="Pending" count={3} />
+            <SectionSkeleton title="Completed" count={2} />
+          </>
         ) : isAdmin ? (
           <>
             <section>
@@ -264,7 +279,7 @@ function ManagePageContent() {
               credentials: "include",
             });
             setManageTask(null);
-            refreshAuth();
+            refreshTasks();
           } : undefined}
         />
       )}
@@ -287,7 +302,7 @@ function ManagePageContent() {
               credentials: "include",
             });
             setManageAssignedTask(null);
-            refreshAuth();
+            refreshTasks();
           }}
         />
       )}
@@ -296,7 +311,7 @@ function ManagePageContent() {
         <EditTaskModal
           task={editingTask}
           onClose={() => { setEditingTask(null); if (typeof window !== "undefined") window.history.replaceState({}, "", "/manage"); }}
-          onSaved={() => { setEditingTask(null); refreshAuth(); if (typeof window !== "undefined") window.history.replaceState({}, "", "/manage"); }}
+          onSaved={() => { setEditingTask(null); refreshTasks(); if (typeof window !== "undefined") window.history.replaceState({}, "", "/manage"); }}
         />
       )}
     </div>

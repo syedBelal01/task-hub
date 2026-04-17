@@ -18,59 +18,77 @@ const AuthContext = createContext<{
   user: User;
   tasksState: GlobalTaskState;
   loading: boolean;
+  tasksLoading: boolean;
   setUser: (u: User) => void;
   refresh: () => Promise<void>;
+  refreshTasks: () => Promise<void>;
 }>({
   user: null,
   tasksState: { tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null },
-  loading: true,
+  loading: false,
+  tasksLoading: false,
   setUser: () => { },
-  refresh: async () => { }
+  refresh: async () => { },
+  refreshTasks: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
   const [tasksState, setTasksState] = useState<GlobalTaskState>({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [tasksLoading, setTasksLoading] = useState(false);
   const pathname = usePathname();
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/init");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       const data = await res.json();
       setUser(data.user ?? null);
-      if (data.user) {
-        setTasksState({
-          tasks: data.tasks ?? [],
-          myTasks: data.myTasks ?? [],
-          assignedToMe: data.assignedToMe ?? [],
-          assignedToOthers: data.assignedToOthers ?? [],
-          grouped: data.grouped ?? null
-        });
-      } else {
-        setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
-      }
     } catch {
       setUser(null);
-      setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    // Avoid an eager `/api/init` call on public routes where we don't need tasks/user yet.
-    // This reduces startup latency (especially noticeable in PWA standalone launches).
-    if (pathname === "/" || pathname === "/login" || pathname === "/register") {
-      setLoading(false);
+  const refreshTasks = useCallback(async () => {
+    // Only fetch tasks when we know the user is logged in.
+    if (!user) {
+      setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
       return;
     }
+
+    setTasksLoading(true);
+    try {
+      const res = await fetch("/api/tasks", { credentials: "include" });
+      if (!res.ok) {
+        setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
+        return;
+      }
+      const data = await res.json();
+      setTasksState({
+        tasks: data.tasks ?? [],
+        myTasks: data.myTasks ?? [],
+        assignedToMe: data.assignedToMe ?? [],
+        assignedToOthers: data.assignedToOthers ?? [],
+        grouped: data.grouped ?? null,
+      });
+    } catch {
+      setTasksState({ tasks: [], myTasks: [], assignedToMe: [], assignedToOthers: [], grouped: null });
+    } finally {
+      setTasksLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Always resolve the current user quickly, but do not block initial render.
+    // Tasks are fetched on-demand by pages that need them.
     refresh();
   }, [pathname, refresh]);
 
   return (
-    <AuthContext.Provider value={{ user, tasksState, loading, setUser, refresh }}>
+    <AuthContext.Provider value={{ user, tasksState, loading, tasksLoading, setUser, refresh, refreshTasks }}>
       {children}
     </AuthContext.Provider>
   );

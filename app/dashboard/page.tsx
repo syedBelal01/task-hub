@@ -54,7 +54,7 @@ function getAdminFilteredTasks(tasks: Task[], activeCard: AdminActiveCard): Task
 }
 
 export default function DashboardPage() {
-  const { user, tasksState, loading: authLoading, refresh: refreshAuth } = useAuth();
+  const { user, tasksState, loading: authLoading, tasksLoading, refreshTasks } = useAuth();
   const { tasks, myTasks, assignedToMe, assignedToOthers } = tasksState;
   const router = useRouter();
 
@@ -81,6 +81,11 @@ export default function DashboardPage() {
   const isAdmin = user?.role === "admin" || apiRole === "admin";
 
   useEffect(() => {
+    if (!user) return;
+    refreshTasks();
+  }, [user, refreshTasks]);
+
+  useEffect(() => {
     if (isAdmin) {
       fetch("/api/users", { credentials: "include" })
         .then((r) => r.json())
@@ -95,7 +100,7 @@ export default function DashboardPage() {
   const handleComplete = async (task: Task) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
     await fetch(`/api/tasks/${task.id}/complete`, { method: "POST", credentials: "include" });
-    refreshAuth();
+    refreshTasks();
   };
   const handleReject = async (task: Task, reason: string) => {
     if (!isAdmin && task.assignedTo !== user?.id) return;
@@ -105,12 +110,12 @@ export default function DashboardPage() {
       body: JSON.stringify({ rejectionReason: reason }),
       credentials: "include",
     });
-    refreshAuth();
+    refreshTasks();
   };
   const handleDelete = async (id: string) => {
     await fetch(`/api/tasks/${id}`, { method: "DELETE", credentials: "include" });
     setManageTask(null);
-    refreshAuth();
+    refreshTasks();
   };
 
   const total = tasks.length;
@@ -174,6 +179,24 @@ export default function DashboardPage() {
         ) : (
           <div className="min-h-[50vh]"></div>
         )
+      ) : tasksLoading ? (
+        <>
+          <div className="mt-6 space-y-3 md:hidden">
+            <MobileSectionSkeleton title="Loading Tasks..." count={4} />
+          </div>
+          <div className="hidden md:block">
+            <div className="mt-6 grid grid-cols-4 gap-3">
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+              <div className="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div className="mt-6 space-y-8">
+              <SectionSkeleton title="Loading Tasks..." count={3} />
+              <SectionSkeleton title="" count={3} />
+            </div>
+          </div>
+        </>
       ) : isAdmin ? (
         <>
           {/* ═══ MOBILE: Admin Expandable Cards ═══ */}
@@ -363,7 +386,7 @@ export default function DashboardPage() {
               credentials: "include",
             });
             setManageTask(null);
-            refreshAuth();
+            refreshTasks();
           } : undefined}
         />
       )}
@@ -386,7 +409,7 @@ export default function DashboardPage() {
               credentials: "include",
             });
             setManageAssignedTask(null);
-            refreshAuth();
+            refreshTasks();
           }}
         />
       )}

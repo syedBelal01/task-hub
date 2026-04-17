@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import type { Task } from "@/types/task";
 import { useAuth } from "@/components/AuthProvider";
+import { MobileSectionSkeleton } from "@/components/Skeletons";
 
 export default function CalendarPage() {
-  const { user, tasksState } = useAuth();
+  const { user, tasksState, tasksLoading, refreshTasks } = useAuth();
   const { tasks } = tasksState;
 
   const [month, setMonth] = useState(() => {
@@ -14,6 +15,11 @@ export default function CalendarPage() {
   });
 
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    refreshTasks();
+  }, [user, refreshTasks]);
 
   const start = new Date(month.year, month.month, 1);
   const end = new Date(month.year, month.month + 1, 0);
@@ -71,42 +77,50 @@ export default function CalendarPage() {
         )}
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
-        <button type="button" onClick={prevMonth} className="rounded-lg border px-3 py-2 hover:bg-slate-50">Previous</button>
-        <span className="font-semibold text-slate-800">{monthLabel}</span>
-        <button type="button" onClick={nextMonth} className="rounded-lg border px-3 py-2 hover:bg-slate-50">Next</button>
-      </div>
+      {tasksLoading ? (
+        <div className="mt-6 space-y-3">
+          <MobileSectionSkeleton title="Loading Calendar..." count={3} />
+        </div>
+      ) : (
+        <>
+          <div className="mt-6 flex items-center justify-between">
+            <button type="button" onClick={prevMonth} className="rounded-lg border px-3 py-2 hover:bg-slate-50">Previous</button>
+            <span className="font-semibold text-slate-800">{monthLabel}</span>
+            <button type="button" onClick={nextMonth} className="rounded-lg border px-3 py-2 hover:bg-slate-50">Next</button>
+          </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-1 text-center text-sm font-medium text-slate-600">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d}>{d}</div>
-        ))}
-      </div>
-      <div className="mt-1 grid grid-cols-7 gap-1">
-        {Array.from({ length: firstDay }, (_, i) => (
-          <div key={`empty-${i}`} className="min-h-[80px] rounded-lg bg-slate-50" />
-        ))}
-        {Array.from({ length: daysInMonth }, (_, i) => {
-          const d = i + 1;
-          const key = `${month.year}-${String(month.month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-          const dayTasks = tasksByDay[key] ?? [];
-          return (
-            <div key={d} className="min-h-[80px] rounded-lg border bg-white p-2">
-              <span className="text-sm font-medium text-slate-700">{d}</span>
-              <ul className="mt-1 space-y-0.5">
-                {dayTasks.slice(0, 3).map((t) => (
-                  <li key={t.id} className="truncate rounded bg-primary-50 px-1 text-xs text-primary-700" title={t.title}>
-                    {t.title}
-                  </li>
-                ))}
-                {dayTasks.length > 3 && (
-                  <li className="text-xs text-slate-500">+{dayTasks.length - 3} more</li>
-                )}
-              </ul>
-            </div>
-          );
-        })}
-      </div>
+          <div className="mt-6 grid grid-cols-7 gap-1 text-center text-sm font-medium text-slate-600">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <div key={d}>{d}</div>
+            ))}
+          </div>
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }, (_, i) => (
+              <div key={`empty-${i}`} className="min-h-[80px] rounded-lg bg-slate-50" />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, i) => {
+              const d = i + 1;
+              const key = `${month.year}-${String(month.month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+              const dayTasks = tasksByDay[key] ?? [];
+              return (
+                <div key={d} className="min-h-[80px] rounded-lg border bg-white p-2">
+                  <span className="text-sm font-medium text-slate-700">{d}</span>
+                  <ul className="mt-1 space-y-0.5">
+                    {dayTasks.slice(0, 3).map((t) => (
+                      <li key={t.id} className="truncate rounded bg-primary-50 px-1 text-xs text-primary-700" title={t.title}>
+                        {t.title}
+                      </li>
+                    ))}
+                    {dayTasks.length > 3 && (
+                      <li className="text-xs text-slate-500">+{dayTasks.length - 3} more</li>
+                    )}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
