@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { useSearchParams } from "next/navigation";
 import type { Task, GroupedTasks } from "@/types/task";
@@ -577,6 +578,17 @@ function EditTaskModal({ task, onClose, onSaved }: { task: Task; onClose: () => 
   const [dueDate, setDueDate] = useState(task.dueDate.slice(0, 10));
   const [priority, setPriority] = useState<Priority>(task.priority);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Lock body scroll to prevent background scrolling (PWA/mobile).
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -594,40 +606,51 @@ function EditTaskModal({ task, onClose, onSaved }: { task: Task; onClose: () => 
     }
   }
 
+  if (!mounted) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold text-slate-800">Edit task</h2>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Due date</label>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Priority</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} className="mt-1 w-full rounded-lg border px-3 py-2">
-              <option value="Urgent">Urgent</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-primary-500 py-2 text-white hover:bg-primary-600 disabled:opacity-50">
-              Save
-            </button>
-            <button type="button" onClick={onClose} className="rounded-lg border px-4 py-2 hover:bg-slate-50">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    createPortal(
+      <div
+        className="fixed inset-0 z-[100] flex min-h-[100dvh] items-center justify-center bg-black/50 p-4"
+        onClick={onClose}
+      >
+        <div
+          className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-lg font-semibold text-slate-800">Edit task</h2>
+          <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Title</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1 w-full rounded-lg border px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Description</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Due date</label>
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required className="mt-1 w-full rounded-lg border px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Priority</label>
+              <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} className="mt-1 w-full rounded-lg border px-3 py-2">
+                <option value="Urgent">Urgent</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-primary-500 py-2 text-white hover:bg-primary-600 disabled:opacity-50">
+                Save
+              </button>
+              <button type="button" onClick={onClose} className="rounded-lg border px-4 py-2 hover:bg-slate-50">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>,
+      document.body
+    )
   );
 }
