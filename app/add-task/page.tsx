@@ -61,6 +61,10 @@ export default function AddTaskPage() {
         body: JSON.stringify(body),
         credentials: "include",
       });
+      if (res.status === 401) {
+        router.replace(`/login?redirect=${encodeURIComponent("/add-task")}`);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to create task");
