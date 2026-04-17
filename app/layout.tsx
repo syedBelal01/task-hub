@@ -5,7 +5,6 @@ import { Navbar } from "@/components/Navbar";
 import { AuthProvider } from "@/components/AuthProvider";
 import { PWAInstall } from "@/components/PWAInstall";
 import { SWRegister } from "@/components/SWRegister";
-import { AutoLogoutOnClose } from "@/components/AutoLogoutOnClose";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -116,7 +115,6 @@ export default function RootLayout({
       <body className={`${outfit.variable} ${publicSans.variable} font-sans antialiased min-h-screen`}>
         <AuthProvider>
           <Navbar />
-          <AutoLogoutOnClose />
           <main className="pb-20 md:pb-8">{children}</main>
           <PWAInstall />
           <SWRegister />
