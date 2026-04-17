@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const COOKIE_NAME = "taskhub_token";
 
-const publicPaths = ["/", "/api/auth/login", "/api/auth/register"];
+const publicPaths = ["/", "/api/init", "/api/auth/login", "/api/auth/register"];
 const authApiPaths = ["/api/auth/me", "/api/auth/logout"];
 
 function isPublic(pathname: string): boolean {
