@@ -52,6 +52,9 @@ export function ManageTaskModal({
   }, []);
 
   useEffect(() => {
+    // Only admins can load the user list from `/api/users`.
+    if (!isAdmin) return;
+
     if ((mode === "assignedToMe" || mode === "full") && userList.length === 0 && users.length === 0) {
       fetch("/api/users", { credentials: "include" })
         .then((r) => r.json())
@@ -60,7 +63,7 @@ export function ManageTaskModal({
     } else if (users.length > 0) {
       setUserList(users);
     }
-  }, [mode, users, userList.length]);
+  }, [isAdmin, mode, users, userList.length]);
 
   useEffect(() => {
     if (task) {
